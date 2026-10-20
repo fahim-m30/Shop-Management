@@ -1,55 +1,55 @@
 /* ============================================
-   দোকান ম্যানেজমেন্ট সিস্টেম — Premium Human-Centric UI
+   দোকান ম্যানেজমেন্ট সিস্টেম — মার্জিত ও রুচিশীল থিম (Elegant Warm Palette)
    ============================================ */
 
 @import url('https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@500;600;700&display=swap');
 
 :root {
-  /* Brand / Primary - Rich Modern Indigo */
-  --primary: #4f46e5;
-  --primary-hover: #4338ca;
-  --primary-light: #eef2ff;
-  --primary-border: #c7d2fe;
+  /* Brand / Primary - মার্জিত ডিপ এমারেল্ড ও ফরেস্ট জেড (সমৃদ্ধি ও বিশ্বস্ততার রঙ) */
+  --primary: #0f766e;
+  --primary-hover: #115e59;
+  --primary-light: #f0fdfa;
+  --primary-border: #99f6e4;
 
   /* Accent Colors */
   --emerald: #059669;
   --emerald-light: #ecfdf5;
   --emerald-border: #a7f3d0;
 
-  --sky: #0284c7;
-  --sky-light: #f0f9ff;
-  --sky-border: #bae6fd;
+  --teal: #0d9488;
+  --teal-light: #f0fdfa;
+  --teal-border: #99f6e4;
 
   --amber: #d97706;
   --amber-light: #fffbeb;
   --amber-border: #fde68a;
 
-  --purple: #7c3aed;
-  --purple-light: #f5f3ff;
-  --purple-border: #ddd6fe;
+  --warm-gold: #b45309;
+  --warm-gold-light: #fef3c7;
 
   --rose: #e11d48;
   --rose-light: #fff1f2;
   --rose-border: #fecdd3;
 
-  /* Modern Neutral Palette */
-  --slate-50: #f8fafc;
-  --slate-100: #f1f5f9;
-  --slate-200: #e2e8f0;
-  --slate-300: #cbd5e1;
-  --slate-400: #94a3b8;
-  --slate-500: #64748b;
-  --slate-600: #475569;
-  --slate-700: #334155;
-  --slate-800: #1e293b;
-  --slate-900: #0f172a;
+  /* Warm Stone & Alabaster Palette (মার্জিত, শান্ত ও চোখের জন্য তৃপ্তিদায়ক) */
+  --stone-50: #fafaf9;
+  --stone-100: #f5f5f4;
+  --stone-200: #e7e5e4;
+  --stone-300: #d6d3d1;
+  --stone-400: #a8a29e;
+  --stone-500: #78716c;
+  --stone-600: #57534e;
+  --stone-700: #44403c;
+  --stone-800: #292524;
+  --stone-900: #1c1917;
+  --stone-950: #0c0a09;
   --white: #ffffff;
 
   /* Shadows - Ambient Layered */
-  --shadow-sm: 0 1px 2px 0 rgba(15, 23, 42, 0.04);
-  --shadow-card: 0 4px 20px -2px rgba(15, 23, 42, 0.05), 0 2px 6px -1px rgba(15, 23, 42, 0.03);
-  --shadow-hover: 0 12px 30px -4px rgba(15, 23, 42, 0.08), 0 4px 12px -2px rgba(15, 23, 42, 0.04);
-  --shadow-modal: 0 24px 48px -12px rgba(15, 23, 42, 0.18);
+  --shadow-sm: 0 1px 2px 0 rgba(28, 25, 23, 0.04);
+  --shadow-card: 0 4px 20px -2px rgba(28, 25, 23, 0.05), 0 2px 6px -1px rgba(28, 25, 23, 0.03);
+  --shadow-hover: 0 12px 30px -4px rgba(28, 25, 23, 0.09), 0 4px 12px -2px rgba(28, 25, 23, 0.04);
+  --shadow-modal: 0 24px 48px -12px rgba(28, 25, 23, 0.25);
 
   /* Radius */
   --radius-sm: 8px;
@@ -66,8 +66,8 @@
 
 body {
   font-family: 'Hind Siliguri', 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
-  background-color: var(--slate-50);
-  color: var(--slate-800);
+  background-color: var(--stone-50);
+  color: var(--stone-900);
   min-height: 100vh;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
@@ -81,9 +81,9 @@ body {
   display: flex;
   flex-direction: column;
   min-height: 100vh;
-  background: radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.03) 0px, transparent 50%),
-              radial-gradient(at 100% 100%, rgba(16, 185, 129, 0.03) 0px, transparent 50%),
-              var(--slate-50);
+  background: radial-gradient(at 0% 0%, rgba(15, 118, 110, 0.04) 0px, transparent 50%),
+              radial-gradient(at 100% 100%, rgba(217, 119, 6, 0.03) 0px, transparent 50%),
+              var(--stone-50);
 }
 
 .main-content {
@@ -96,8 +96,8 @@ body {
 
 .app-footer {
   background: var(--white);
-  border-top: 1px solid var(--slate-200);
-  color: var(--slate-500);
+  border-top: 1px solid var(--stone-200);
+  color: var(--stone-500);
   text-align: center;
   padding: 20px;
   font-size: 14px;
@@ -106,11 +106,11 @@ body {
 }
 
 /* ============================================
-   NAVBAR - Sleek Frosted Glass
+   NAVBAR - মার্জিত ডার্ক এসপ্রেসো ও গ্লাস
    ============================================ */
 
 .navbar {
-  background: rgba(15, 23, 42, 0.94);
+  background: rgba(28, 25, 23, 0.95);
   backdrop-filter: blur(14px);
   -webkit-backdrop-filter: blur(14px);
   padding: 0 24px;
@@ -118,7 +118,7 @@ body {
   align-items: center;
   justify-content: space-between;
   height: 68px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.12);
   border-bottom: 1px solid rgba(255, 255, 255, 0.08);
   position: sticky;
   top: 0;
@@ -133,7 +133,7 @@ body {
 
 .brand-icon {
   font-size: 26px;
-  background: rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.08);
   padding: 6px;
   border-radius: var(--radius-sm);
   display: flex;
@@ -181,9 +181,9 @@ body {
 }
 
 .nav-link.active {
-  background: linear-gradient(135deg, #4f46e5 0%, #6366f1 100%);
+  background: linear-gradient(135deg, #0f766e 0%, #0d9488 100%);
   color: var(--white);
-  box-shadow: 0 2px 10px rgba(99, 102, 241, 0.4);
+  box-shadow: 0 2px 10px rgba(15, 118, 110, 0.45);
 }
 
 .navbar-user {
@@ -197,13 +197,13 @@ body {
   font-size: 14px;
   font-weight: 500;
   background: rgba(255, 255, 255, 0.08);
-  padding: 5px 12px;
+  padding: 5px 14px;
   border-radius: 20px;
   border: 1px solid rgba(255, 255, 255, 0.06);
 }
 
 /* ============================================
-   AUTH PAGES - Warm, Calming, Human-Centric
+   AUTH PAGES - মার্জিত চারকোল ও অ্যারোমা ব্যাকগ্রাউন্ড (NO BLUE)
    ============================================ */
 
 .auth-container {
@@ -211,21 +211,21 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: radial-gradient(circle at 15% 15%, #1e1b4b 0%, #0f172a 60%, #020617 100%);
+  background: radial-gradient(circle at 20% 20%, #292524 0%, #1c1917 55%, #0c0a09 100%);
   padding: 24px;
   position: relative;
   overflow: hidden;
 }
 
-/* Ambient glow blobs */
+/* Warm ambient glowing lights */
 .auth-container::before {
   content: '';
   position: absolute;
-  width: 400px;
-  height: 400px;
-  background: radial-gradient(circle, rgba(99, 102, 241, 0.25), transparent 70%);
-  top: 10%;
-  left: 20%;
+  width: 480px;
+  height: 480px;
+  background: radial-gradient(circle, rgba(15, 118, 110, 0.22), transparent 70%);
+  top: 8%;
+  left: 15%;
   border-radius: 50%;
   pointer-events: none;
 }
@@ -233,11 +233,11 @@ body {
 .auth-container::after {
   content: '';
   position: absolute;
-  width: 350px;
-  height: 350px;
-  background: radial-gradient(circle, rgba(16, 185, 129, 0.18), transparent 70%);
-  bottom: 10%;
-  right: 20%;
+  width: 420px;
+  height: 420px;
+  background: radial-gradient(circle, rgba(217, 119, 6, 0.14), transparent 70%);
+  bottom: 8%;
+  right: 15%;
   border-radius: 50%;
   pointer-events: none;
 }
@@ -249,8 +249,8 @@ body {
   padding: 44px 38px;
   width: 100%;
   max-width: 440px;
-  box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.35),
-              0 0 0 1px rgba(255, 255, 255, 0.2);
+  box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.45),
+              0 0 0 1px rgba(255, 255, 255, 0.15);
   position: relative;
   z-index: 1;
 }
@@ -265,25 +265,25 @@ body {
   width: 76px;
   height: 76px;
   margin: 0 auto 16px;
-  background: linear-gradient(135deg, #eef2ff 0%, #e0e7ff 100%);
+  background: linear-gradient(135deg, #f0fdfa 0%, #ccfbf1 100%);
   border: 2px solid var(--primary-border);
   border-radius: 22px;
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 8px 16px -4px rgba(79, 70, 229, 0.15);
+  box-shadow: 0 8px 16px -4px rgba(15, 118, 110, 0.18);
 }
 
 .auth-header h1 {
   font-size: 24px;
   font-weight: 700;
-  color: var(--slate-900);
+  color: var(--stone-900);
   margin-bottom: 6px;
   letter-spacing: -0.4px;
 }
 
 .auth-header p {
-  color: var(--slate-500);
+  color: var(--stone-500);
   font-size: 14px;
   font-weight: 500;
 }
@@ -291,7 +291,7 @@ body {
 .auth-switch {
   text-align: center;
   margin-top: 24px;
-  color: var(--slate-500);
+  color: var(--stone-500);
   font-size: 14px;
   font-weight: 500;
 }
@@ -309,7 +309,7 @@ body {
   display: block;
   font-size: 13px;
   font-weight: 600;
-  color: var(--slate-700);
+  color: var(--stone-700);
   margin-bottom: 7px;
   letter-spacing: -0.1px;
 }
@@ -319,26 +319,26 @@ body {
 .form-group textarea {
   width: 100%;
   padding: 12px 16px;
-  border: 1.5px solid var(--slate-200);
+  border: 1.5px solid var(--stone-200);
   border-radius: var(--radius-md);
   font-size: 15px;
   font-family: inherit;
-  color: var(--slate-900);
-  background: var(--slate-50);
+  color: var(--stone-900);
+  background: var(--stone-50);
   transition: all 0.2s ease;
   outline: none;
 }
 
 .form-group input:hover,
 .form-group select:hover {
-  border-color: var(--slate-300);
+  border-color: var(--stone-300);
 }
 
 .form-group input:focus,
 .form-group select:focus {
   background: var(--white);
   border-color: var(--primary);
-  box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.12);
+  box-shadow: 0 0 0 4px rgba(15, 118, 110, 0.14);
 }
 
 .income-preview {
@@ -365,16 +365,16 @@ body {
   padding: 28px;
   margin-bottom: 28px;
   box-shadow: var(--shadow-card);
-  border: 1px solid var(--slate-200);
+  border: 1px solid var(--stone-200);
 }
 
 .form-card h3 {
   font-size: 18px;
   font-weight: 700;
-  color: var(--slate-900);
+  color: var(--stone-900);
   margin-bottom: 20px;
   padding-bottom: 14px;
-  border-bottom: 1px solid var(--slate-100);
+  border-bottom: 1px solid var(--stone-100);
   display: flex;
   align-items: center;
   gap: 8px;
@@ -405,20 +405,20 @@ body {
 }
 
 .btn-primary {
-  background: linear-gradient(135deg, #4f46e5 0%, #6366f1 100%);
+  background: linear-gradient(135deg, #0f766e 0%, #0d9488 100%);
   color: var(--white);
   width: 100%;
   padding: 13px;
   font-size: 15px;
   font-weight: 700;
   margin-top: 10px;
-  box-shadow: 0 4px 14px rgba(79, 70, 229, 0.35);
+  box-shadow: 0 4px 14px rgba(15, 118, 110, 0.35);
 }
 
 .btn-primary:hover:not(:disabled) {
-  background: linear-gradient(135deg, #4338ca 0%, #4f46e5 100%);
+  background: linear-gradient(135deg, #115e59 0%, #0f766e 100%);
   transform: translateY(-1px);
-  box-shadow: 0 6px 20px rgba(79, 70, 229, 0.45);
+  box-shadow: 0 6px 20px rgba(15, 118, 110, 0.45);
 }
 
 .btn-primary:active:not(:disabled) {
@@ -526,13 +526,13 @@ body {
 .page-header h2 {
   font-size: 28px;
   font-weight: 700;
-  color: var(--slate-900);
+  color: var(--stone-900);
   margin-bottom: 6px;
   letter-spacing: -0.5px;
 }
 
 .page-header p {
-  color: var(--slate-500);
+  color: var(--stone-500);
   font-size: 15px;
   font-weight: 500;
 }
@@ -540,13 +540,13 @@ body {
 .section-title {
   font-size: 18px;
   font-weight: 700;
-  color: var(--slate-800);
+  color: var(--stone-800);
   margin: 32px 0 16px;
   letter-spacing: -0.3px;
 }
 
 /* ============================================
-   STATS CARDS - Beautiful Pastel Elevation
+   STATS CARDS - মার্জিত প্যাস্টেল কার্ড
    ============================================ */
 
 .stats-grid {
@@ -564,7 +564,7 @@ body {
   align-items: center;
   gap: 16px;
   box-shadow: var(--shadow-card);
-  border: 1px solid var(--slate-200);
+  border: 1px solid var(--stone-200);
   transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
   position: relative;
   overflow: hidden;
@@ -577,12 +577,12 @@ body {
 
 /* Color Card Themes */
 .stat-blue {
-  border-color: var(--sky-border);
-  background: linear-gradient(180deg, var(--white) 0%, var(--sky-light) 100%);
+  border-color: var(--teal-border);
+  background: linear-gradient(180deg, var(--white) 0%, var(--teal-light) 100%);
 }
 .stat-blue .stat-icon {
-  background: #e0f2fe;
-  color: #0369a1;
+  background: #ccfbf1;
+  color: #0f766e;
 }
 
 .stat-green {
@@ -604,12 +604,12 @@ body {
 }
 
 .stat-purple {
-  border-color: var(--purple-border);
-  background: linear-gradient(180deg, var(--white) 0%, var(--purple-light) 100%);
+  border-color: #fde68a;
+  background: linear-gradient(180deg, var(--white) 0%, #fffbeb 100%);
 }
 .stat-purple .stat-icon {
-  background: #ede9fe;
-  color: #6d28d9;
+  background: #fef3c7;
+  color: #92400e;
 }
 
 .stat-icon {
@@ -625,7 +625,7 @@ body {
 
 .stat-info p {
   font-size: 13px;
-  color: var(--slate-500);
+  color: var(--stone-500);
   margin-bottom: 4px;
   font-weight: 600;
   text-transform: uppercase;
@@ -635,7 +635,7 @@ body {
 .stat-info h3 {
   font-size: 22px;
   font-weight: 700;
-  color: var(--slate-900);
+  color: var(--stone-900);
   letter-spacing: -0.5px;
 }
 
@@ -652,7 +652,7 @@ body {
   padding: 14px 20px;
   margin-bottom: 20px;
   box-shadow: var(--shadow-card);
-  border: 1px solid var(--slate-200);
+  border: 1px solid var(--stone-200);
   flex-wrap: wrap;
 }
 
@@ -665,18 +665,18 @@ body {
 .filter-group label {
   font-size: 13px;
   font-weight: 700;
-  color: var(--slate-600);
+  color: var(--stone-600);
   white-space: nowrap;
 }
 
 .filter-group select {
   padding: 7px 14px;
-  border: 1.5px solid var(--slate-200);
+  border: 1.5px solid var(--stone-200);
   border-radius: var(--radius-sm);
   font-size: 14px;
   font-family: inherit;
-  color: var(--slate-900);
-  background: var(--slate-50);
+  color: var(--stone-900);
+  background: var(--stone-50);
   cursor: pointer;
   font-weight: 600;
   outline: none;
@@ -691,7 +691,7 @@ body {
 .filter-totals {
   margin-left: auto;
   font-size: 14px;
-  color: var(--slate-600);
+  color: var(--stone-600);
   display: flex;
   gap: 20px;
   font-weight: 500;
@@ -699,7 +699,7 @@ body {
 
 .filter-totals strong,
 .filter-total strong {
-  color: var(--slate-900);
+  color: var(--stone-900);
   font-weight: 700;
   font-size: 15px;
 }
@@ -716,7 +716,7 @@ body {
   background: var(--white);
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-card);
-  border: 1px solid var(--slate-200);
+  border: 1px solid var(--stone-200);
   overflow: hidden;
 }
 
@@ -726,22 +726,22 @@ body {
 }
 
 .data-table th {
-  background: var(--slate-50);
+  background: var(--stone-100);
   padding: 16px 20px;
   text-align: left;
   font-size: 12px;
   font-weight: 700;
-  color: var(--slate-500);
+  color: var(--stone-600);
   text-transform: uppercase;
   letter-spacing: 0.6px;
-  border-bottom: 1px solid var(--slate-200);
+  border-bottom: 1px solid var(--stone-200);
 }
 
 .data-table td {
   padding: 16px 20px;
-  border-bottom: 1px solid var(--slate-100);
+  border-bottom: 1px solid var(--stone-100);
   font-size: 15px;
-  color: var(--slate-700);
+  color: var(--stone-700);
   font-weight: 500;
 }
 
@@ -750,7 +750,7 @@ body {
 }
 
 .data-table tbody tr:hover {
-  background-color: #f8fafc;
+  background-color: var(--stone-50);
 }
 
 .data-table tbody tr:last-child td {
@@ -759,7 +759,7 @@ body {
 
 .data-table .amount {
   font-weight: 700;
-  color: var(--slate-900);
+  color: var(--stone-900);
   font-variant-numeric: tabular-nums;
 }
 
@@ -769,8 +769,8 @@ body {
 }
 
 .total-row {
-  background: var(--slate-50) !important;
-  border-top: 2px solid var(--slate-200) !important;
+  background: var(--stone-100) !important;
+  border-top: 2px solid var(--stone-200) !important;
 }
 
 .total-row td {
@@ -786,7 +786,7 @@ body {
 .empty-state {
   padding: 56px 24px;
   text-align: center;
-  color: var(--slate-400);
+  color: var(--stone-400);
   font-size: 16px;
   font-weight: 500;
 }
@@ -805,7 +805,7 @@ body {
   padding: 14px 18px;
   margin-bottom: 24px;
   font-size: 14px;
-  color: #3730a3;
+  color: #115e59;
   font-weight: 500;
 }
 
@@ -824,14 +824,14 @@ body {
   justify-content: center;
   min-height: 100vh;
   gap: 16px;
-  color: var(--slate-500);
+  color: var(--stone-500);
   font-weight: 500;
 }
 
 .spinner {
   width: 42px;
   height: 42px;
-  border: 3.5px solid var(--slate-200);
+  border: 3.5px solid var(--stone-200);
   border-top-color: var(--primary);
   border-radius: 50%;
   animation: spin 0.75s linear infinite;

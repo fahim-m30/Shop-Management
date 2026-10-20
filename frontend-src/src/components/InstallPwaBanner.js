@@ -45,7 +45,7 @@ const InstallPwaBanner = () => {
   return (
     <>
       <div style={{
-        background: 'linear-gradient(90deg, #1e1b4b 0%, #312e81 50%, #4338ca 100%)',
+        background: 'linear-gradient(90deg, #1c1917 0%, #292524 50%, #1c1917 100%)',
         color: '#ffffff',
         padding: '11px 20px',
         display: 'flex',
@@ -55,8 +55,8 @@ const InstallPwaBanner = () => {
         gap: '12px',
         fontSize: '14px',
         fontWeight: '500',
-        boxShadow: '0 4px 16px rgba(15, 23, 42, 0.15)',
-        borderBottom: '1px solid rgba(255, 255, 255, 0.1)',
+        boxShadow: '0 4px 16px rgba(0, 0, 0, 0.2)',
+        borderBottom: '1px solid rgba(255, 255, 255, 0.08)',
         zIndex: 1000,
         position: 'relative'
       }}>
@@ -141,14 +141,14 @@ const InstallPwaBanner = () => {
               onClick={() => setShowIOSGuide(false)}
               style={{
                 marginTop: '16px',
-                background: 'linear-gradient(135deg, #4f46e5 0%, #6366f1 100%)',
+                background: 'linear-gradient(135deg, #0f766e 0%, #0d9488 100%)',
                 color: 'white',
                 border: 'none',
                 borderRadius: '10px',
                 padding: '9px 28px',
                 fontWeight: '600',
                 cursor: 'pointer',
-                boxShadow: '0 4px 12px rgba(79, 70, 229, 0.3)'
+                boxShadow: '0 4px 12px rgba(15, 118, 110, 0.3)'
               }}
             >
               বুঝেছি
