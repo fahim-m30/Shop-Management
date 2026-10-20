@@ -6,6 +6,7 @@ import DashboardPage from './pages/DashboardPage';
 import StockPage from './pages/StockPage';
 import SalesPage from './pages/SalesPage';
 import Navbar from './components/Navbar';
+import InstallPwaBanner from './components/InstallPwaBanner';
 import './App.css';
 
 const AppContent = () => {
@@ -23,14 +24,21 @@ const AppContent = () => {
   }
 
   if (!user) {
-    if (authMode === 'login') {
-      return <LoginPage onSwitch={() => setAuthMode('register')} />;
-    }
-    return <RegisterPage onSwitch={() => setAuthMode('login')} />;
+    return (
+      <>
+        <InstallPwaBanner />
+        {authMode === 'login' ? (
+          <LoginPage onSwitch={() => setAuthMode('register')} />
+        ) : (
+          <RegisterPage onSwitch={() => setAuthMode('login')} />
+        )}
+      </>
+    );
   }
 
   return (
     <div className="app-layout">
+      <InstallPwaBanner />
       <Navbar activePage={activePage} onNavigate={setActivePage} />
       <main className="main-content">
         {activePage === 'dashboard' && <DashboardPage />}
