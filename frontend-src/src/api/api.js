@@ -6,12 +6,13 @@ const getBaseURL = () => {
   }
   if (typeof window !== 'undefined') {
     const { hostname } = window.location;
-    // Mobile / Other device on same WiFi (e.g. 192.168.x.x)
-    if (hostname !== 'localhost' && hostname !== '127.0.0.1' && !hostname.includes('vercel.app')) {
-      return `http://${hostname}:5000/api`;
+    // Local development only when developing on laptop localhost
+    if (hostname === 'localhost' || hostname === '127.0.0.1') {
+      return 'http://localhost:5000/api';
     }
   }
-  return 'http://localhost:5000/api';
+  // Production 24/7 Cloud Backend on Render
+  return 'https://shop-management-jj8y.onrender.com/api';
 };
 
 const API = axios.create({
