@@ -12,7 +12,7 @@ const getBaseURL = () => {
     }
   }
   // Production 24/7 Cloud Backend on Render
-  return 'https://shop-management-jj8y.onrender.com/api';
+  return 'https://shop-management-jj6y.onrender.com/api';
 };
 
 const API = axios.create({
