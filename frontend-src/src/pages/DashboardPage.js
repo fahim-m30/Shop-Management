@@ -83,12 +83,16 @@ const DashboardPage = () => {
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '8px', margin: '28px 0 16px' }}>
         <h3 className="section-title" style={{ margin: 0 }}>🌅 আজকের হিসাব</h3>
         <span style={{ 
-          background: '#dcfce7', 
-          color: '#166534', 
-          padding: '4px 12px', 
+          background: 'var(--emerald-light)', 
+          color: 'var(--emerald)', 
+          border: '1px solid var(--emerald-border)',
+          padding: '5px 14px', 
           borderRadius: '20px', 
           fontSize: '13px', 
-          fontWeight: '600' 
+          fontWeight: '600',
+          display: 'inline-flex',
+          alignItems: 'center',
+          gap: '6px'
         }}>
           📅 {formatDateBn(new Date())}
         </span>
@@ -123,12 +127,16 @@ const DashboardPage = () => {
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '8px', marginBottom: '14px' }}>
             <h3 className="section-title" style={{ margin: 0 }}>⏱️ সর্বশেষ দিনের হিসাব</h3>
             <span style={{ 
-              background: '#e0e7ff', 
-              color: '#3730a3', 
-              padding: '4px 12px', 
+              background: 'var(--primary-light)', 
+              color: 'var(--primary)', 
+              border: '1px solid var(--primary-border)',
+              padding: '5px 14px', 
               borderRadius: '20px', 
               fontSize: '13px', 
-              fontWeight: '600' 
+              fontWeight: '600',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '6px'
             }}>
               📌 লেনদেনের তারিখ: {formatDateBn(data.lastDay.date)}
             </span>

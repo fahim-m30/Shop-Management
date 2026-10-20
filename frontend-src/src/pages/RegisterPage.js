@@ -85,17 +85,22 @@ const RegisterPage = ({ onSwitch }) => {
                 onClick={() => setShowPassword(!showPassword)}
                 style={{
                   position: 'absolute',
-                  right: '10px',
-                  background: 'none',
-                  border: 'none',
+                  right: '8px',
+                  background: 'rgba(241, 245, 249, 0.9)',
+                  border: '1px solid #cbd5e1',
+                  borderRadius: '20px',
                   cursor: 'pointer',
-                  fontSize: '18px',
-                  padding: '4px',
-                  color: '#6b7280'
+                  fontSize: '12px',
+                  fontWeight: '600',
+                  padding: '6px 12px',
+                  color: '#475569',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '4px',
+                  transition: 'all 0.15s ease'
                 }}
-                title={showPassword ? 'লুকান' : 'দেখুন'}
               >
-                {showPassword ? '🙈' : '👁️'}
+                {showPassword ? '🙈 লুকান' : '👁️ দেখুন'}
               </button>
             </div>
           </div>

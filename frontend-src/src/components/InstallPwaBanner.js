@@ -45,41 +45,44 @@ const InstallPwaBanner = () => {
   return (
     <>
       <div style={{
-        background: 'linear-gradient(90deg, #1e40af, #2563eb)',
+        background: 'linear-gradient(90deg, #1e1b4b 0%, #312e81 50%, #4338ca 100%)',
         color: '#ffffff',
-        padding: '10px 16px',
+        padding: '11px 20px',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-between',
         flexWrap: 'wrap',
-        gap: '10px',
+        gap: '12px',
         fontSize: '14px',
         fontWeight: '500',
-        boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
+        boxShadow: '0 4px 16px rgba(15, 23, 42, 0.15)',
+        borderBottom: '1px solid rgba(255, 255, 255, 0.1)',
         zIndex: 1000,
         position: 'relative'
       }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
           <span style={{ fontSize: '20px' }}>📲</span>
-          <span>
+          <span style={{ fontWeight: '600', letterSpacing: '-0.2px' }}>
             {isIOS 
               ? 'আইফোনে অ্যাপ হিসেবে হোম স্ক্রিনে রাখুন!'
-              : 'অ্যাপ হিসেবে আপনার ফোনে ইনস্টল করুন!'}
+              : 'দোকান ম্যানেজার অ্যাপটি ফোনে ইনস্টল করে নিন!'}
           </span>
         </div>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
           <button
             onClick={handleInstallClick}
             style={{
-              background: '#facc15',
-              color: '#1e3a8a',
+              background: '#fbbf24',
+              color: '#0f172a',
               border: 'none',
               borderRadius: '20px',
-              padding: '6px 14px',
+              padding: '6px 16px',
               fontWeight: '700',
               cursor: 'pointer',
-              fontSize: '13px'
+              fontSize: '13px',
+              boxShadow: '0 2px 8px rgba(251, 191, 36, 0.35)',
+              transition: 'transform 0.15s ease'
             }}
           >
             {isIOS ? 'কীভাবে করবেন?' : 'ইন্সটল করুন'}
@@ -89,10 +92,10 @@ const InstallPwaBanner = () => {
             style={{
               background: 'transparent',
               border: 'none',
-              color: 'rgba(255,255,255,0.8)',
+              color: 'rgba(255,255,255,0.7)',
               fontSize: '18px',
               cursor: 'pointer',
-              padding: '0 6px'
+              padding: '2px 6px'
             }}
             title="বন্ধ করুন"
           >
@@ -138,13 +141,14 @@ const InstallPwaBanner = () => {
               onClick={() => setShowIOSGuide(false)}
               style={{
                 marginTop: '16px',
-                background: '#2563eb',
+                background: 'linear-gradient(135deg, #4f46e5 0%, #6366f1 100%)',
                 color: 'white',
                 border: 'none',
-                borderRadius: '8px',
-                padding: '8px 24px',
+                borderRadius: '10px',
+                padding: '9px 28px',
                 fontWeight: '600',
-                cursor: 'pointer'
+                cursor: 'pointer',
+                boxShadow: '0 4px 12px rgba(79, 70, 229, 0.3)'
               }}
             >
               বুঝেছি

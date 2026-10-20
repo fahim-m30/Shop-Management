@@ -72,17 +72,21 @@ const LoginPage = ({ onSwitch }) => {
                 style={{
                   position: 'absolute',
                   right: '8px',
-                  background: '#f3f4f6',
-                  border: '1px solid #d1d5db',
-                  borderRadius: '6px',
+                  background: 'rgba(241, 245, 249, 0.9)',
+                  border: '1px solid #cbd5e1',
+                  borderRadius: '20px',
                   cursor: 'pointer',
                   fontSize: '12px',
                   fontWeight: '600',
-                  padding: '5px 10px',
-                  color: '#374151'
+                  padding: '6px 12px',
+                  color: '#475569',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '4px',
+                  transition: 'all 0.15s ease'
                 }}
               >
-                {showPassword ? 'লুকান' : 'দেখুন'}
+                {showPassword ? '🙈 লুকান' : '👁️ দেখুন'}
               </button>
             </div>
           </div>
