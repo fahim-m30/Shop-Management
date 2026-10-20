@@ -65,17 +65,18 @@ const LoginPage = ({ onSwitch }) => {
                 onClick={() => setShowPassword(!showPassword)}
                 style={{
                   position: 'absolute',
-                  right: '10px',
-                  background: 'none',
-                  border: 'none',
+                  right: '8px',
+                  background: '#f3f4f6',
+                  border: '1px solid #d1d5db',
+                  borderRadius: '6px',
                   cursor: 'pointer',
-                  fontSize: '18px',
-                  padding: '4px',
-                  color: '#6b7280'
+                  fontSize: '12px',
+                  fontWeight: '600',
+                  padding: '5px 10px',
+                  color: '#374151'
                 }}
-                title={showPassword ? 'লুকান' : 'দেখুন'}
               >
-                {showPassword ? '🙈' : '👁️'}
+                {showPassword ? 'লুকান' : 'দেখুন'}
               </button>
             </div>
           </div>
