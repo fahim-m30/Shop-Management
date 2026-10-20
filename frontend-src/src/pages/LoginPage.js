@@ -15,7 +15,13 @@ const LoginPage = ({ onSwitch }) => {
     try {
       await login(form.email.trim().toLowerCase(), form.password);
     } catch (err) {
-      setError(err.response?.data?.message || 'লগইন ব্যর্থ হয়েছে।');
+      if (err.response?.data?.message) {
+        setError(err.response.data.message);
+      } else if (err.message) {
+        setError(`সার্ভার কানেকশন এরর (${err.message})। ব্যাকএন্ড লাইভ আছে কি না চেক করুন।`);
+      } else {
+        setError('লগইন ব্যর্থ হয়েছে। সার্ভারে পৌঁছানো যাচ্ছে না।');
+      }
     } finally {
       setLoading(false);
     }
