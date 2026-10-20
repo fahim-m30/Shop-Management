@@ -1,7 +1,21 @@
 import axios from 'axios';
 
+const getBaseURL = () => {
+  if (process.env.REACT_APP_API_URL) {
+    return process.env.REACT_APP_API_URL;
+  }
+  if (typeof window !== 'undefined') {
+    const { hostname } = window.location;
+    // Mobile / Other device on same WiFi (e.g. 192.168.x.x)
+    if (hostname !== 'localhost' && hostname !== '127.0.0.1' && !hostname.includes('vercel.app')) {
+      return `http://${hostname}:5000/api`;
+    }
+  }
+  return 'http://localhost:5000/api';
+};
+
 const API = axios.create({
-  baseURL: 'http://localhost:5000/api'
+  baseURL: getBaseURL()
 });
 
 // Attach token to every request automatically
