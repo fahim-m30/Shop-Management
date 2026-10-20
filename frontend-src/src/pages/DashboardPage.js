@@ -34,6 +34,16 @@ const DashboardPage = () => {
 
   const tk = (amount) => `৳${Number(amount || 0).toLocaleString('bn-BD', { minimumFractionDigits: 2 })}`;
 
+  const formatDateBn = (dateInput) => {
+    if (!dateInput) return '';
+    const d = new Date(dateInput);
+    return d.toLocaleDateString('bn-BD', {
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric'
+    });
+  };
+
   const years = [];
   for (let y = now.getFullYear(); y >= now.getFullYear() - 3; y--) years.push(y);
 
@@ -70,7 +80,19 @@ const DashboardPage = () => {
       </div>
 
       {/* Today's Stats */}
-      <h3 className="section-title">🌅 আজকের হিসাব</h3>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '8px', margin: '28px 0 16px' }}>
+        <h3 className="section-title" style={{ margin: 0 }}>🌅 আজকের হিসাব</h3>
+        <span style={{ 
+          background: '#dcfce7', 
+          color: '#166534', 
+          padding: '4px 12px', 
+          borderRadius: '20px', 
+          fontSize: '13px', 
+          fontWeight: '600' 
+        }}>
+          📅 {formatDateBn(new Date())}
+        </span>
+      </div>
       <div className="stats-grid">
         <div className="stat-card stat-blue">
           <div className="stat-icon">📦</div>
@@ -94,6 +116,49 @@ const DashboardPage = () => {
           </div>
         </div>
       </div>
+
+      {/* Last Active Day's Stats */}
+      {data?.lastDay && (
+        <div style={{ marginTop: '28px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '8px', marginBottom: '14px' }}>
+            <h3 className="section-title" style={{ margin: 0 }}>⏱️ সর্বশেষ দিনের হিসাব</h3>
+            <span style={{ 
+              background: '#e0e7ff', 
+              color: '#3730a3', 
+              padding: '4px 12px', 
+              borderRadius: '20px', 
+              fontSize: '13px', 
+              fontWeight: '600' 
+            }}>
+              📌 লেনদেনের তারিখ: {formatDateBn(data.lastDay.date)}
+            </span>
+          </div>
+
+          <div className="stats-grid">
+            <div className="stat-card stat-blue">
+              <div className="stat-icon">📦</div>
+              <div className="stat-info">
+                <p>মাল ঢুকেছিল</p>
+                <h3>{tk(data.lastDay.totalStock)}</h3>
+              </div>
+            </div>
+            <div className="stat-card stat-green">
+              <div className="stat-icon">💰</div>
+              <div className="stat-info">
+                <p>মোট বিক্রয়</p>
+                <h3>{tk(data.lastDay.totalSales)}</h3>
+              </div>
+            </div>
+            <div className="stat-card stat-orange">
+              <div className="stat-icon">📈</div>
+              <div className="stat-info">
+                <p>মোট আয় (১২%)</p>
+                <h3>{tk(data.lastDay.totalIncome)}</h3>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Monthly Stats */}
       <h3 className="section-title">📅 {MONTHS[selectedMonth - 1]} {selectedYear} — মাসিক হিসাব</h3>
