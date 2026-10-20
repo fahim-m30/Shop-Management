@@ -28,10 +28,12 @@
     <div id="root"></div>
 
     <script>
-      // Register minimal service worker for PWA install criteria
+      // Register minimal service worker for PWA install criteria and auto-update
       if ('serviceWorker' in navigator) {
         window.addEventListener('load', () => {
-          navigator.serviceWorker.register('/sw.js').catch(() => {});
+          navigator.serviceWorker.register('/sw.js').then((reg) => {
+            reg.update();
+          }).catch(() => {});
         });
       }
     </script>
