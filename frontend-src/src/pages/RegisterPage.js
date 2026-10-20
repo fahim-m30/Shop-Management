@@ -4,6 +4,7 @@ import { useAuth } from '../context/AuthContext';
 const RegisterPage = ({ onSwitch }) => {
   const { register } = useAuth();
   const [form, setForm] = useState({ name: '', email: '', password: '', shopName: '' });
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
@@ -12,7 +13,7 @@ const RegisterPage = ({ onSwitch }) => {
     setLoading(true);
     setError('');
     try {
-      await register(form.name, form.email, form.password, form.shopName);
+      await register(form.name.trim(), form.email.trim().toLowerCase(), form.password, form.shopName.trim());
     } catch (err) {
       setError(err.response?.data?.message || 'রেজিস্ট্রেশন ব্যর্থ হয়েছে।');
     } finally {
@@ -58,19 +59,45 @@ const RegisterPage = ({ onSwitch }) => {
               placeholder="example@gmail.com"
               value={form.email}
               onChange={(e) => setForm({ ...form, email: e.target.value })}
+              autoCapitalize="none"
+              autoCorrect="off"
+              spellCheck="false"
               required
             />
           </div>
           <div className="form-group">
             <label>পাসওয়ার্ড</label>
-            <input
-              type="password"
-              placeholder="কমপক্ষে ৬ অক্ষর"
-              value={form.password}
-              onChange={(e) => setForm({ ...form, password: e.target.value })}
-              minLength={6}
-              required
-            />
+            <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
+              <input
+                type={showPassword ? 'text' : 'password'}
+                placeholder="কমপক্ষে ৬ অক্ষর"
+                value={form.password}
+                onChange={(e) => setForm({ ...form, password: e.target.value })}
+                minLength={6}
+                autoCapitalize="none"
+                autoCorrect="off"
+                spellCheck="false"
+                style={{ paddingRight: '45px', width: '100%' }}
+                required
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                style={{
+                  position: 'absolute',
+                  right: '10px',
+                  background: 'none',
+                  border: 'none',
+                  cursor: 'pointer',
+                  fontSize: '18px',
+                  padding: '4px',
+                  color: '#6b7280'
+                }}
+                title={showPassword ? 'লুকান' : 'দেখুন'}
+              >
+                {showPassword ? '🙈' : '👁️'}
+              </button>
+            </div>
           </div>
           <button type="submit" className="btn btn-primary" disabled={loading}>
             {loading ? 'তৈরি হচ্ছে...' : 'একাউন্ট তৈরি করুন'}

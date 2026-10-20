@@ -53,12 +53,18 @@ const login = async (req, res) => {
       return res.status(400).json({ message: 'ইমেইল এবং পাসওয়ার্ড দিন।' });
     }
 
-    const user = await User.findOne({ email });
+    const cleanEmail = email.trim().toLowerCase();
+    const user = await User.findOne({ email: cleanEmail });
     if (!user) {
       return res.status(400).json({ message: 'ইউজার পাওয়া যায়নি।' });
     }
 
-    const isMatch = await user.comparePassword(password);
+    // Try normal compare first, then trim if needed
+    let isMatch = await user.comparePassword(password);
+    if (!isMatch && password.trim() !== password) {
+      isMatch = await user.comparePassword(password.trim());
+    }
+
     if (!isMatch) {
       return res.status(400).json({ message: 'পাসওয়ার্ড ভুল।' });
     }
