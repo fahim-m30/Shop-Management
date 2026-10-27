@@ -1,6 +1,8 @@
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
+const https = require('https');
+const http = require('http');
 require('dotenv').config();
 
 const app = express();
@@ -11,7 +13,19 @@ app.use(express.json());
 
 // Health check route
 app.get('/', (req, res) => {
-  res.json({ status: 'ok', message: 'Shop Management API is live and running!' });
+  res.json({ 
+    status: 'ok', 
+    message: 'Shop Management API is live and running!',
+    timestamp: new Date().toISOString()
+  });
+});
+
+app.get('/api/health', (req, res) => {
+  res.json({ 
+    status: 'healthy', 
+    uptime: process.uptime(),
+    timestamp: new Date().toISOString()
+  });
 });
 
 // Routes
@@ -28,4 +42,19 @@ mongoose.connect(process.env.MONGO_URI)
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, '0.0.0.0', () => {
   console.log(`🚀 Server running on port ${PORT}`);
+
+  // Keep-Alive Self Ping (every 10 minutes to prevent Render free-tier spin-down)
+  const SERVER_URL = process.env.SERVER_URL || 'https://shop-management-jj6y.onrender.com';
+  setInterval(() => {
+    try {
+      const client = SERVER_URL.startsWith('https') ? https : http;
+      client.get(SERVER_URL, (res) => {
+        console.log(`[Keep-Alive] Ping sent to ${SERVER_URL} (Status: ${res.statusCode})`);
+      }).on('error', (err) => {
+        console.warn(`[Keep-Alive] Ping failed: ${err.message}`);
+      });
+    } catch (e) {
+      console.warn(`[Keep-Alive] Error: ${e.message}`);
+    }
+  }, 10 * 60 * 1000);
 });
