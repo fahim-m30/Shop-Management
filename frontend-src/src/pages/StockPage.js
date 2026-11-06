@@ -31,8 +31,25 @@ const StockPage = () => {
     }
   }, [filterMonth, filterYear]);
 
+  // Real-time synchronization
   useEffect(() => {
     fetchStocks();
+
+    const handleSync = () => fetchStocks();
+    window.addEventListener('shop-sync', handleSync);
+    window.addEventListener('focus', handleSync);
+
+    const interval = setInterval(() => {
+      if (document.visibilityState === 'visible') {
+        fetchStocks();
+      }
+    }, 6000);
+
+    return () => {
+      window.removeEventListener('shop-sync', handleSync);
+      window.removeEventListener('focus', handleSync);
+      clearInterval(interval);
+    };
   }, [fetchStocks]);
 
   const handleSubmit = async (e) => {
@@ -46,9 +63,12 @@ const StockPage = () => {
     setMsg('');
     try {
       await addStock({ amount: Number(form.amount), date: form.date, description: form.description });
-      setMsg('✅ মাল ঢোকার তথ্য সফলভাবে সেভ হয়েছে!');
+      setMsg('✅ মাল ঢোকা সেভ হয়েছে!');
       setForm({ amount: '', date: new Date().toISOString().split('T')[0], description: '' });
       fetchStocks();
+      // Notify all other components in real-time
+      window.dispatchEvent(new CustomEvent('shop-sync'));
+      setTimeout(() => setMsg(''), 3000);
     } catch (err) {
       setError(err.response?.data?.message || 'এরর হয়েছে।');
     } finally {
@@ -61,6 +81,7 @@ const StockPage = () => {
     try {
       await deleteStock(id);
       fetchStocks();
+      window.dispatchEvent(new CustomEvent('shop-sync'));
     } catch (err) {
       alert('মুছতে সমস্যা হয়েছে।');
     }
@@ -69,21 +90,53 @@ const StockPage = () => {
   const tk = (a) => `৳${Number(a || 0).toLocaleString('bn-BD', { minimumFractionDigits: 2 })}`;
 
   return (
-    <div className="page-content">
-      <div className="page-header">
-        <h2>📦 মাল ঢোকার হিসাব</h2>
-        <p>দোকানে কত টাকার মাল ঢুকেছে তা এখানে লিখুন।</p>
+    <div className="page-content" style={{ paddingBottom: '10px' }}>
+      {/* Header */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px', flexWrap: 'wrap', gap: '8px' }}>
+        <div>
+          <h2 style={{ fontSize: '20px', fontWeight: 700, margin: 0, color: 'var(--stone-900)' }}>
+            📦 মাল ঢোকার হিসাব
+          </h2>
+          <p style={{ fontSize: '13px', color: 'var(--stone-500)', margin: '2px 0 0' }}>
+            দোকানে নতুন মাল কেনার হিসাব এন্ট্রি করুন ও তালিকা দেখুন।
+          </p>
+        </div>
+
+        {/* Filter controls */}
+        <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+          <select 
+            value={filterMonth} 
+            onChange={e => setFilterMonth(Number(e.target.value))}
+            style={{ padding: '6px 10px', fontSize: '13px', borderRadius: '8px', border: '1px solid var(--stone-200)', background: 'var(--white)', fontWeight: 600 }}
+          >
+            {MONTHS.map((m, i) => <option key={i + 1} value={i + 1}>{m}</option>)}
+          </select>
+          <select 
+            value={filterYear} 
+            onChange={e => setFilterYear(Number(e.target.value))}
+            style={{ padding: '6px 10px', fontSize: '13px', borderRadius: '8px', border: '1px solid var(--stone-200)', background: 'var(--white)', fontWeight: 600 }}
+          >
+            {years.map(y => <option key={y} value={y}>{y}</option>)}
+          </select>
+          <div style={{ background: 'var(--primary-light)', color: 'var(--primary)', border: '1px solid var(--primary-border)', padding: '5px 12px', borderRadius: '12px', fontSize: '13px', fontWeight: 700 }}>
+            মোট: {tk(totalAmount)}
+          </div>
+        </div>
       </div>
 
-      {/* Add Form */}
-      <div className="form-card">
-        <h3>নতুন এন্ট্রি যোগ করুন</h3>
-        {msg && <div className="alert alert-success">{msg}</div>}
-        {error && <div className="alert alert-error">⚠️ {error}</div>}
-        <form onSubmit={handleSubmit} className="entry-form">
-          <div className="form-row">
-            <div className="form-group">
-              <label>পরিমাণ (টাকা) *</label>
+      {/* Split-Layout: Zero Window Scroll */}
+      <div className="split-layout">
+        {/* Left: Sticky Compact Form */}
+        <div className="form-card split-sticky" style={{ margin: 0, padding: '20px' }}>
+          <h3 style={{ fontSize: '16px', margin: '0 0 14px', paddingBottom: '10px' }}>
+            ➕ নতুন মাল এন্ট্রি
+          </h3>
+          {msg && <div className="alert alert-success" style={{ padding: '8px 12px', fontSize: '13px' }}>{msg}</div>}
+          {error && <div className="alert alert-error" style={{ padding: '8px 12px', fontSize: '13px' }}>⚠️ {error}</div>}
+          
+          <form onSubmit={handleSubmit}>
+            <div className="form-group" style={{ marginBottom: '12px' }}>
+              <label style={{ fontSize: '12px' }}>পরিমাণ (টাকা) *</label>
               <input
                 type="number"
                 placeholder="যেমন: 5000"
@@ -91,86 +144,75 @@ const StockPage = () => {
                 onChange={e => setForm({ ...form, amount: e.target.value })}
                 min="1"
                 required
+                style={{ padding: '10px 14px' }}
               />
             </div>
-            <div className="form-group">
-              <label>তারিখ</label>
+
+            <div className="form-group" style={{ marginBottom: '12px' }}>
+              <label style={{ fontSize: '12px' }}>তারিখ</label>
               <input
                 type="date"
                 value={form.date}
                 onChange={e => setForm({ ...form, date: e.target.value })}
+                style={{ padding: '10px 14px' }}
               />
             </div>
-          </div>
-          <div className="form-group">
-            <label>বিবরণ (ঐচ্ছিক)</label>
-            <input
-              type="text"
-              placeholder="যেমন: চাল, ডাল, তেল"
-              value={form.description}
-              onChange={e => setForm({ ...form, description: e.target.value })}
-            />
-          </div>
-          <button type="submit" className="btn btn-primary" disabled={loading}>
-            {loading ? 'সেভ হচ্ছে...' : '+ এন্ট্রি যোগ করুন'}
-          </button>
-        </form>
-      </div>
 
-      {/* Filter */}
-      <div className="filter-bar">
-        <div className="filter-group">
-          <label>মাস:</label>
-          <select value={filterMonth} onChange={e => setFilterMonth(Number(e.target.value))}>
-            {MONTHS.map((m, i) => <option key={i + 1} value={i + 1}>{m}</option>)}
-          </select>
-        </div>
-        <div className="filter-group">
-          <label>বছর:</label>
-          <select value={filterYear} onChange={e => setFilterYear(Number(e.target.value))}>
-            {years.map(y => <option key={y} value={y}>{y}</option>)}
-          </select>
-        </div>
-        <div className="filter-total">
-          মোট: <strong>{tk(totalAmount)}</strong>
-        </div>
-      </div>
+            <div className="form-group" style={{ marginBottom: '14px' }}>
+              <label style={{ fontSize: '12px' }}>বিবরণ (ঐচ্ছিক)</label>
+              <input
+                type="text"
+                placeholder="যেমন: চাল, ডাল, তেল"
+                value={form.description}
+                onChange={e => setForm({ ...form, description: e.target.value })}
+                style={{ padding: '10px 14px' }}
+              />
+            </div>
 
-      {/* Table */}
-      <div className="table-wrapper">
-        {stocks.length === 0 ? (
-          <div className="empty-state">📭 এই মাসে কোনো এন্ট্রি নেই।</div>
-        ) : (
-          <table className="data-table">
-            <thead>
-              <tr>
-                <th>তারিখ</th>
-                <th>পরিমাণ</th>
-                <th>বিবরণ</th>
-                <th>মুছুন</th>
-              </tr>
-            </thead>
-            <tbody>
-              {stocks.map(s => (
-                <tr key={s._id}>
-                  <td>{new Date(s.date).toLocaleDateString('bn-BD')}</td>
-                  <td className="amount">{tk(s.amount)}</td>
-                  <td>{s.description || '—'}</td>
-                  <td>
-                    <button className="btn btn-danger-sm" onClick={() => handleDelete(s._id)}>🗑️</button>
-                  </td>
+            <button type="submit" className="btn btn-primary" disabled={loading} style={{ padding: '11px' }}>
+              {loading ? 'সেভ হচ্ছে...' : '+ এন্ট্রি সেভ করুন'}
+            </button>
+          </form>
+        </div>
+
+        {/* Right: Scrollable Records Table */}
+        <div className="compact-table-container">
+          {stocks.length === 0 ? (
+            <div className="empty-state" style={{ padding: '40px 20px' }}>📭 এই মাসে কোনো এন্ট্রি নেই।</div>
+          ) : (
+            <table className="data-table">
+              <thead>
+                <tr>
+                  <th>তারিখ</th>
+                  <th>পরিমাণ</th>
+                  <th>বিবরণ</th>
+                  <th style={{ textAlign: 'center' }}>অ্যাকশন</th>
                 </tr>
-              ))}
-            </tbody>
-            <tfoot>
-              <tr className="total-row">
-                <td><strong>মোট</strong></td>
-                <td className="amount"><strong>{tk(totalAmount)}</strong></td>
-                <td colSpan="2"></td>
-              </tr>
-            </tfoot>
-          </table>
-        )}
+              </thead>
+              <tbody>
+                {stocks.map(s => (
+                  <tr key={s._id}>
+                    <td>{new Date(s.date).toLocaleDateString('bn-BD')}</td>
+                    <td className="amount">{tk(s.amount)}</td>
+                    <td>{s.description || '—'}</td>
+                    <td style={{ textAlign: 'center' }}>
+                      <button className="btn btn-danger-sm" onClick={() => handleDelete(s._id)} title="মুছুন">
+                        🗑️
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+              <tfoot>
+                <tr className="total-row">
+                  <td><strong>সর্বমোট</strong></td>
+                  <td className="amount"><strong>{tk(totalAmount)}</strong></td>
+                  <td colSpan="2"></td>
+                </tr>
+              </tfoot>
+            </table>
+          )}
+        </div>
       </div>
     </div>
   );

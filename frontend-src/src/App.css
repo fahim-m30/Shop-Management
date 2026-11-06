@@ -87,10 +87,10 @@ body {
 
 .main-content {
   flex: 1;
-  max-width: 1120px;
+  max-width: 1200px;
   width: 100%;
   margin: 0 auto;
-  padding: 32px 20px 48px;
+  padding: 16px 20px 24px;
 }
 
 .app-footer {
@@ -905,4 +905,196 @@ body {
     display: block;
     overflow-x: auto;
   }
+}
+
+/* ============================================
+   REAL-TIME & ZERO-SCROLL COMPACT ENHANCEMENTS
+   ============================================ */
+
+.live-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--emerald-light);
+  color: var(--emerald);
+  border: 1px solid var(--emerald-border);
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: -0.2px;
+}
+
+.live-dot {
+  width: 8px;
+  height: 8px;
+  background-color: var(--emerald);
+  border-radius: 50%;
+  box-shadow: 0 0 0 0 rgba(5, 150, 105, 0.7);
+  animation: live-pulse 1.8s infinite;
+}
+
+@keyframes live-pulse {
+  0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(5, 150, 105, 0.7); }
+  70% { transform: scale(1); box-shadow: 0 0 0 6px rgba(5, 150, 105, 0); }
+  100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(5, 150, 105, 0); }
+}
+
+.period-switcher {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--white);
+  border: 1px solid var(--stone-200);
+  padding: 6px;
+  border-radius: var(--radius-md);
+  margin-bottom: 14px;
+  overflow-x: auto;
+  box-shadow: var(--shadow-sm);
+}
+
+.period-btn {
+  padding: 8px 14px;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--stone-600);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.15s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: inherit;
+}
+
+.period-btn:hover {
+  background: var(--stone-100);
+  color: var(--stone-900);
+}
+
+.period-btn.active {
+  background: var(--primary);
+  color: var(--white);
+  box-shadow: 0 2px 8px rgba(15, 118, 110, 0.28);
+}
+
+.overview-card {
+  background: var(--white);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--stone-200);
+  box-shadow: var(--shadow-card);
+  padding: 16px 20px;
+  margin-top: 16px;
+}
+
+.overview-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.overview-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.overview-table th {
+  background: var(--stone-100);
+  padding: 10px 14px;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--stone-600);
+  text-transform: uppercase;
+  text-align: left;
+  border-bottom: 1px solid var(--stone-200);
+}
+
+.overview-table td {
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--stone-100);
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--stone-800);
+}
+
+.overview-table tr:hover td {
+  background: var(--stone-50);
+}
+
+.overview-table tr.active-row td {
+  background: var(--primary-light);
+  color: var(--primary-hover);
+}
+
+/* Split-layout for Zero-Scroll on Stock & Sales */
+.split-layout {
+  display: grid;
+  grid-template-columns: 360px 1fr;
+  gap: 20px;
+  align-items: start;
+}
+
+@media (max-width: 900px) {
+  .split-layout {
+    grid-template-columns: 1fr;
+  }
+}
+
+.split-sticky {
+  position: sticky;
+  top: 84px;
+}
+
+.compact-table-container {
+  max-height: calc(100vh - 210px);
+  overflow-y: auto;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--stone-200);
+  box-shadow: var(--shadow-card);
+  background: var(--white);
+}
+
+.compact-table-container::-webkit-scrollbar {
+  width: 6px;
+}
+
+.compact-table-container::-webkit-scrollbar-track {
+  background: var(--stone-100);
+}
+
+.compact-table-container::-webkit-scrollbar-thumb {
+  background: var(--stone-300);
+  border-radius: 4px;
+}
+
+.btn-refresh {
+  background: var(--stone-100);
+  border: 1px solid var(--stone-200);
+  color: var(--stone-700);
+  padding: 6px 12px;
+  border-radius: 20px;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.2s ease;
+  font-family: inherit;
+}
+
+.btn-refresh:hover {
+  background: var(--stone-200);
+  color: var(--stone-900);
+}
+
+.spin-icon {
+  display: inline-block;
+  animation: spin 0.8s linear infinite;
 }

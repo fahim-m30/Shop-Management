@@ -19,24 +19,47 @@ const DashboardPage = () => {
     }
   });
   const [loading, setLoading] = useState(!data);
+  const [activeTab, setActiveTab] = useState('today'); // 'today', 'lastDay', 'monthly', 'allTime', 'compare'
   const now = new Date();
   const [selectedMonth, setSelectedMonth] = useState(now.getMonth() + 1);
   const [selectedYear, setSelectedYear] = useState(now.getFullYear());
+  const [lastSyncTime, setLastSyncTime] = useState(new Date());
 
-  const fetchDashboard = useCallback(async () => {
+  const fetchDashboard = useCallback(async (isSilent = false) => {
+    if (!data && !isSilent) setLoading(true);
     try {
       const res = await getDashboard({ month: selectedMonth, year: selectedYear });
       setData(res.data);
       localStorage.setItem('shop_cached_dashboard', JSON.stringify(res.data));
+      setLastSyncTime(new Date());
     } catch (err) {
       console.error(err);
     } finally {
       setLoading(false);
     }
-  }, [selectedMonth, selectedYear]);
+  }, [selectedMonth, selectedYear, data]);
 
+  // Real-time synchronization
   useEffect(() => {
     fetchDashboard();
+
+    // Triggered whenever stock or sales are added, edited, or deleted anywhere
+    const handleSync = () => fetchDashboard(true);
+    window.addEventListener('shop-sync', handleSync);
+    window.addEventListener('focus', handleSync);
+
+    // Silent background live polling every 5 seconds when tab is open
+    const interval = setInterval(() => {
+      if (document.visibilityState === 'visible') {
+        fetchDashboard(true);
+      }
+    }, 5000);
+
+    return () => {
+      window.removeEventListener('shop-sync', handleSync);
+      window.removeEventListener('focus', handleSync);
+      clearInterval(interval);
+    };
   }, [fetchDashboard]);
 
   const tk = (amount) => `৳${Number(amount || 0).toLocaleString('bn-BD', { minimumFractionDigits: 2 })}`;
@@ -64,196 +87,249 @@ const DashboardPage = () => {
     </div>
   );
 
-  return (
-    <div className="page-content">
-      <div className="page-header">
-        <h2>📊 ড্যাশবোর্ড</h2>
-        <p>{user?.shopName} — স্বাগতম, {user?.name}!</p>
-      </div>
+  // Active metrics depending on selected tab
+  let heroTitle = '🌅 আজকের হিসাব';
+  let heroSubtitle = formatDateBn(new Date());
+  let currentStock = data?.today?.totalStock || 0;
+  let currentSales = data?.today?.totalSales || 0;
+  let currentIncome = data?.today?.totalIncome || 0;
 
-      {/* Month/Year Filter */}
-      <div className="filter-bar">
-        <div className="filter-group">
-          <label>মাস:</label>
-          <select value={selectedMonth} onChange={e => setSelectedMonth(Number(e.target.value))}>
+  if (activeTab === 'lastDay' && data?.lastDay) {
+    heroTitle = '⏱️ সর্বশেষ সক্রিয় দিনের হিসাব';
+    heroSubtitle = data.lastDay.date ? formatDateBn(data.lastDay.date) : 'পূর্ববর্তী লেনদেন';
+    currentStock = data.lastDay.totalStock || 0;
+    currentSales = data.lastDay.totalSales || 0;
+    currentIncome = data.lastDay.totalIncome || 0;
+  } else if (activeTab === 'monthly') {
+    heroTitle = `📅 ${MONTHS[selectedMonth - 1]} ${selectedYear} — মাসিক হিসাব`;
+    heroSubtitle = 'নির্বাচিত মাসের হিসাব';
+    currentStock = data?.monthly?.totalStock || 0;
+    currentSales = data?.monthly?.totalSales || 0;
+    currentIncome = data?.monthly?.totalIncome || 0;
+  } else if (activeTab === 'allTime') {
+    heroTitle = '🏆 সর্বমোট হিসাব (সব সময়)';
+    heroSubtitle = 'দোকানের শুরু থেকে আজ পর্যন্ত';
+    currentStock = data?.allTime?.totalStock || 0;
+    currentSales = data?.allTime?.totalSales || 0;
+    currentIncome = data?.allTime?.totalIncome || 0;
+  }
+
+  return (
+    <div className="page-content" style={{ paddingBottom: '10px' }}>
+      {/* Compact Header with Live Badge & Quick Switcher */}
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '10px', marginBottom: '12px' }}>
+        <div>
+          <h2 style={{ fontSize: '22px', fontWeight: 700, margin: 0, color: 'var(--stone-900)' }}>
+            📊 ড্যাশবোর্ড
+          </h2>
+          <p style={{ fontSize: '13px', color: 'var(--stone-500)', margin: '2px 0 0' }}>
+            {user?.shopName} — {user?.name} | <span style={{ color: 'var(--emerald)', fontWeight: 600 }}>🟢 লাইভ আপডেট: {lastSyncTime.toLocaleTimeString('bn-BD', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}</span>
+          </p>
+        </div>
+
+        {/* Compact Month/Year Selector */}
+        <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+          <select 
+            value={selectedMonth} 
+            onChange={e => setSelectedMonth(Number(e.target.value))}
+            style={{ padding: '6px 10px', fontSize: '13px', borderRadius: '8px', border: '1px solid var(--stone-200)', background: 'var(--white)', fontWeight: 600 }}
+          >
             {MONTHS.map((m, i) => (
               <option key={i + 1} value={i + 1}>{m}</option>
             ))}
           </select>
-        </div>
-        <div className="filter-group">
-          <label>বছর:</label>
-          <select value={selectedYear} onChange={e => setSelectedYear(Number(e.target.value))}>
+          <select 
+            value={selectedYear} 
+            onChange={e => setSelectedYear(Number(e.target.value))}
+            style={{ padding: '6px 10px', fontSize: '13px', borderRadius: '8px', border: '1px solid var(--stone-200)', background: 'var(--white)', fontWeight: 600 }}
+          >
             {years.map(y => <option key={y} value={y}>{y}</option>)}
           </select>
         </div>
       </div>
 
-      {/* Today's Stats */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '8px', margin: '28px 0 16px' }}>
-        <h3 className="section-title" style={{ margin: 0 }}>🌅 আজকের হিসাব</h3>
-        <span style={{ 
-          background: 'var(--emerald-light)', 
-          color: 'var(--emerald)', 
-          border: '1px solid var(--emerald-border)',
-          padding: '5px 14px', 
-          borderRadius: '20px', 
-          fontSize: '13px', 
-          fontWeight: '600',
-          display: 'inline-flex',
-          alignItems: 'center',
-          gap: '6px'
-        }}>
-          📅 {formatDateBn(new Date())}
-        </span>
-      </div>
-      <div className="stats-grid">
-        <div className="stat-card stat-blue">
-          <div className="stat-icon">📦</div>
-          <div className="stat-info">
-            <p>আজ মাল ঢুকেছে</p>
-            <h3>{tk(data?.today?.totalStock)}</h3>
-          </div>
-        </div>
-        <div className="stat-card stat-green">
-          <div className="stat-icon">💰</div>
-          <div className="stat-info">
-            <p>আজ বিক্রয়</p>
-            <h3>{tk(data?.today?.totalSales)}</h3>
-          </div>
-        </div>
-        <div className="stat-card stat-orange">
-          <div className="stat-icon">📈</div>
-          <div className="stat-info">
-            <p>আজ আয় (১২%)</p>
-            <h3>{tk(data?.today?.totalIncome)}</h3>
-          </div>
-        </div>
+      {/* Zero-Scroll Period Switcher Tabs */}
+      <div className="period-switcher">
+        <button 
+          className={`period-btn ${activeTab === 'today' ? 'active' : ''}`}
+          onClick={() => setActiveTab('today')}
+        >
+          🌅 আজকের হিসাব
+        </button>
+        {data?.lastDay && (
+          <button 
+            className={`period-btn ${activeTab === 'lastDay' ? 'active' : ''}`}
+            onClick={() => setActiveTab('lastDay')}
+          >
+            ⏱️ শেষ সক্রিয় দিন
+          </button>
+        )}
+        <button 
+          className={`period-btn ${activeTab === 'monthly' ? 'active' : ''}`}
+          onClick={() => setActiveTab('monthly')}
+        >
+          📅 এই মাসের হিসাব
+        </button>
+        <button 
+          className={`period-btn ${activeTab === 'allTime' ? 'active' : ''}`}
+          onClick={() => setActiveTab('allTime')}
+        >
+          🏆 সর্বমোট হিসাব
+        </button>
+        <button 
+          className={`period-btn ${activeTab === 'compare' ? 'active' : ''}`}
+          onClick={() => setActiveTab('compare')}
+        >
+          📋 ৬ মাসের তুলনা
+        </button>
       </div>
 
-      {/* Last Active Day's Stats */}
-      {data?.lastDay && (
-        <div style={{ marginTop: '28px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '8px', marginBottom: '14px' }}>
-            <h3 className="section-title" style={{ margin: 0 }}>⏱️ সর্বশেষ দিনের হিসাব</h3>
-            <span style={{ 
-              background: 'var(--primary-light)', 
-              color: 'var(--primary)', 
-              border: '1px solid var(--primary-border)',
-              padding: '5px 14px', 
-              borderRadius: '20px', 
-              fontSize: '13px', 
-              fontWeight: '600',
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '6px'
-            }}>
-              📌 লেনদেনের তারিখ: {formatDateBn(data.lastDay.date)}
+      {activeTab !== 'compare' ? (
+        <>
+          {/* Hero 3 Cards for currently active period */}
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
+            <span style={{ fontSize: '14px', fontWeight: 700, color: 'var(--stone-700)' }}>
+              {heroTitle}
+            </span>
+            <span style={{ fontSize: '12px', background: 'var(--stone-100)', padding: '2px 8px', borderRadius: '12px', color: 'var(--stone-600)', fontWeight: 600 }}>
+              {heroSubtitle}
             </span>
           </div>
 
-          <div className="stats-grid">
-            <div className="stat-card stat-blue">
-              <div className="stat-icon">📦</div>
+          <div className="stats-grid" style={{ marginBottom: '14px' }}>
+            <div className="stat-card stat-blue" style={{ padding: '16px' }}>
+              <div className="stat-icon" style={{ width: '44px', height: '44px', fontSize: '22px' }}>📦</div>
               <div className="stat-info">
-                <p>মাল ঢুকেছিল</p>
-                <h3>{tk(data.lastDay.totalStock)}</h3>
+                <p style={{ margin: 0, fontSize: '12px' }}>মাল ঢুকেছে</p>
+                <h3 style={{ fontSize: '20px', marginTop: '2px' }}>{tk(currentStock)}</h3>
               </div>
             </div>
-            <div className="stat-card stat-green">
-              <div className="stat-icon">💰</div>
+            <div className="stat-card stat-green" style={{ padding: '16px' }}>
+              <div className="stat-icon" style={{ width: '44px', height: '44px', fontSize: '22px' }}>💰</div>
               <div className="stat-info">
-                <p>মোট বিক্রয়</p>
-                <h3>{tk(data.lastDay.totalSales)}</h3>
+                <p style={{ margin: 0, fontSize: '12px' }}>মোট বিক্রয়</p>
+                <h3 style={{ fontSize: '20px', marginTop: '2px' }}>{tk(currentSales)}</h3>
               </div>
             </div>
-            <div className="stat-card stat-orange">
-              <div className="stat-icon">📈</div>
+            <div className="stat-card stat-orange" style={{ padding: '16px' }}>
+              <div className="stat-icon" style={{ width: '44px', height: '44px', fontSize: '22px' }}>📈</div>
               <div className="stat-info">
-                <p>মোট আয় (১২%)</p>
-                <h3>{tk(data.lastDay.totalIncome)}</h3>
+                <p style={{ margin: 0, fontSize: '12px' }}>মোট লাভ (১২%)</p>
+                <h3 style={{ fontSize: '20px', marginTop: '2px' }}>{tk(currentIncome)}</h3>
               </div>
             </div>
+          </div>
+
+          {/* Zero-Scroll Executive Summary: All Periods in 1 Compact Card */}
+          <div className="overview-card" style={{ marginTop: '0', padding: '12px 16px' }}>
+            <div className="overview-card-header" style={{ marginBottom: '8px' }}>
+              <span style={{ fontSize: '14px', fontWeight: 700, color: 'var(--stone-800)' }}>
+                ⚡ এক নজরে সব হিসাব (All Time & Live)
+              </span>
+              <span style={{ fontSize: '12px', color: 'var(--stone-500)', fontWeight: 500 }}>
+                কোনো স্ক্রল ছাড়াই সম্পূর্ণ হিসাব
+              </span>
+            </div>
+
+            <div style={{ overflowX: 'auto' }}>
+              <table className="overview-table">
+                <thead>
+                  <tr>
+                    <th>সময়কাল</th>
+                    <th>📦 মাল ঢুকেছে</th>
+                    <th>💰 বিক্রয়</th>
+                    <th>📈 লাভ / আয় (১২%)</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr 
+                    className={activeTab === 'today' ? 'active-row' : ''} 
+                    style={{ cursor: 'pointer' }}
+                    onClick={() => setActiveTab('today')}
+                  >
+                    <td>🌅 আজকের হিসাব</td>
+                    <td>{tk(data?.today?.totalStock)}</td>
+                    <td>{tk(data?.today?.totalSales)}</td>
+                    <td style={{ color: 'var(--emerald)', fontWeight: 700 }}>{tk(data?.today?.totalIncome)}</td>
+                  </tr>
+
+                  {data?.lastDay && (
+                    <tr 
+                      className={activeTab === 'lastDay' ? 'active-row' : ''} 
+                      style={{ cursor: 'pointer' }}
+                      onClick={() => setActiveTab('lastDay')}
+                    >
+                      <td>⏱️ শেষ সক্রিয় দিন ({formatDateBn(data.lastDay.date)})</td>
+                      <td>{tk(data.lastDay.totalStock)}</td>
+                      <td>{tk(data.lastDay.totalSales)}</td>
+                      <td style={{ color: 'var(--emerald)', fontWeight: 700 }}>{tk(data.lastDay.totalIncome)}</td>
+                    </tr>
+                  )}
+
+                  <tr 
+                    className={activeTab === 'monthly' ? 'active-row' : ''} 
+                    style={{ cursor: 'pointer' }}
+                    onClick={() => setActiveTab('monthly')}
+                  >
+                    <td>📅 চলতি মাস ({MONTHS[selectedMonth - 1]})</td>
+                    <td>{tk(data?.monthly?.totalStock)}</td>
+                    <td>{tk(data?.monthly?.totalSales)}</td>
+                    <td style={{ color: 'var(--emerald)', fontWeight: 700 }}>{tk(data?.monthly?.totalIncome)}</td>
+                  </tr>
+
+                  <tr 
+                    className={activeTab === 'allTime' ? 'active-row' : ''} 
+                    style={{ cursor: 'pointer' }}
+                    onClick={() => setActiveTab('allTime')}
+                  >
+                    <td>🏆 সর্বমোট হিসাব</td>
+                    <td>{tk(data?.allTime?.totalStock)}</td>
+                    <td>{tk(data?.allTime?.totalSales)}</td>
+                    <td style={{ color: 'var(--emerald)', fontWeight: 700 }}>{tk(data?.allTime?.totalIncome)}</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </>
+      ) : (
+        /* 6 Month Comparison View */
+        <div className="overview-card" style={{ marginTop: '0', padding: '14px 18px' }}>
+          <div className="overview-card-header">
+            <span style={{ fontSize: '15px', fontWeight: 700, color: 'var(--stone-800)' }}>
+              📋 বিগত ৬ মাসের তুলনামূলক রেকর্ড
+            </span>
+            <button 
+              className="btn-refresh"
+              onClick={() => setActiveTab('today')}
+            >
+              ⬅️ আজকের হিসাবে ফিরুন
+            </button>
+          </div>
+          <div style={{ overflowX: 'auto', maxHeight: 'calc(100vh - 250px)' }}>
+            <table className="data-table">
+              <thead>
+                <tr>
+                  <th>মাস</th>
+                  <th>মাল ঢুকেছে</th>
+                  <th>বিক্রয়</th>
+                  <th>আয় (১২%)</th>
+                </tr>
+              </thead>
+              <tbody>
+                {data?.monthlyBreakdown?.map((row, i) => (
+                  <tr key={i} className={row.month === selectedMonth && row.year === selectedYear ? 'highlight-row' : ''}>
+                    <td>{MONTHS[row.month - 1]} {row.year}</td>
+                    <td className="amount">{tk(row.totalStock)}</td>
+                    <td className="amount">{tk(row.totalSales)}</td>
+                    <td className="amount income">{tk(row.totalIncome)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
         </div>
       )}
-
-      {/* Monthly Stats */}
-      <h3 className="section-title">📅 {MONTHS[selectedMonth - 1]} {selectedYear} — মাসিক হিসাব</h3>
-      <div className="stats-grid">
-        <div className="stat-card stat-blue">
-          <div className="stat-icon">📦</div>
-          <div className="stat-info">
-            <p>মোট মাল ঢুকেছে</p>
-            <h3>{tk(data?.monthly?.totalStock)}</h3>
-          </div>
-        </div>
-        <div className="stat-card stat-green">
-          <div className="stat-icon">💰</div>
-          <div className="stat-info">
-            <p>মোট বিক্রয়</p>
-            <h3>{tk(data?.monthly?.totalSales)}</h3>
-          </div>
-        </div>
-        <div className="stat-card stat-orange">
-          <div className="stat-icon">📈</div>
-          <div className="stat-info">
-            <p>মোট আয় (১২%)</p>
-            <h3>{tk(data?.monthly?.totalIncome)}</h3>
-          </div>
-        </div>
-      </div>
-
-      {/* All Time Stats */}
-      <h3 className="section-title">🏆 সর্বমোট হিসাব (সব সময়)</h3>
-      <div className="stats-grid">
-        <div className="stat-card stat-purple">
-          <div className="stat-icon">📦</div>
-          <div className="stat-info">
-            <p>সর্বমোট মাল</p>
-            <h3>{tk(data?.allTime?.totalStock)}</h3>
-          </div>
-        </div>
-        <div className="stat-card stat-purple">
-          <div className="stat-icon">💰</div>
-          <div className="stat-info">
-            <p>সর্বমোট বিক্রয়</p>
-            <h3>{tk(data?.allTime?.totalSales)}</h3>
-          </div>
-        </div>
-        <div className="stat-card stat-purple">
-          <div className="stat-icon">📈</div>
-          <div className="stat-info">
-            <p>সর্বমোট আয় (১২%)</p>
-            <h3>{tk(data?.allTime?.totalIncome)}</h3>
-          </div>
-        </div>
-      </div>
-
-      {/* Monthly Breakdown Table */}
-      <h3 className="section-title">📋 গত ৬ মাসের তুলনা</h3>
-      <div className="table-wrapper">
-        <table className="data-table">
-          <thead>
-            <tr>
-              <th>মাস</th>
-              <th>মাল ঢুকেছে</th>
-              <th>বিক্রয়</th>
-              <th>আয় (১২%)</th>
-            </tr>
-          </thead>
-          <tbody>
-            {data?.monthlyBreakdown?.map((row, i) => (
-              <tr key={i} className={row.month === selectedMonth && row.year === selectedYear ? 'highlight-row' : ''}>
-                <td>{MONTHS[row.month - 1]} {row.year}</td>
-                <td className="amount">{tk(row.totalStock)}</td>
-                <td className="amount">{tk(row.totalSales)}</td>
-                <td className="amount income">{tk(row.totalIncome)}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
     </div>
   );
 };
