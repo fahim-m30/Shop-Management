@@ -10,17 +10,24 @@ const MONTHS = [
 
 const DashboardPage = () => {
   const { user } = useAuth();
-  const [data, setData] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const [data, setData] = useState(() => {
+    try {
+      const cached = localStorage.getItem('shop_cached_dashboard');
+      return cached ? JSON.parse(cached) : null;
+    } catch {
+      return null;
+    }
+  });
+  const [loading, setLoading] = useState(!data);
   const now = new Date();
   const [selectedMonth, setSelectedMonth] = useState(now.getMonth() + 1);
   const [selectedYear, setSelectedYear] = useState(now.getFullYear());
 
   const fetchDashboard = useCallback(async () => {
-    setLoading(true);
     try {
       const res = await getDashboard({ month: selectedMonth, year: selectedYear });
       setData(res.data);
+      localStorage.setItem('shop_cached_dashboard', JSON.stringify(res.data));
     } catch (err) {
       console.error(err);
     } finally {
@@ -47,10 +54,13 @@ const DashboardPage = () => {
   const years = [];
   for (let y = now.getFullYear(); y >= now.getFullYear() - 3; y--) years.push(y);
 
-  if (loading) return (
+  if (loading && !data) return (
     <div className="loading-screen">
       <div className="spinner"></div>
-      <p>লোড হচ্ছে...</p>
+      <p style={{ fontWeight: 600, fontSize: '16px', color: 'var(--stone-800)' }}>হিসাব লোড হচ্ছে...</p>
+      <p style={{ fontSize: '13px', color: 'var(--stone-500)', maxWidth: '320px', textAlign: 'center', lineHeight: '1.5' }}>
+        ⏳ ক্লাউড সার্ভার প্রস্তুত হচ্ছে... প্রথমবার কিছুক্ষণ সময় লাগতে পারে, দয়া করে অপেক্ষা করুন।
+      </p>
     </div>
   );
 

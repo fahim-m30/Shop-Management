@@ -15,9 +15,20 @@ const getBaseURL = () => {
   return 'https://shop-management-jj6y.onrender.com/api';
 };
 
+// 60-second timeout to handle Render cold-start without throwing timeout errors
 const API = axios.create({
-  baseURL: getBaseURL()
+  baseURL: getBaseURL(),
+  timeout: 60000
 });
+
+// Pre-warm the backend immediately in the background on page load
+if (typeof window !== 'undefined') {
+  try {
+    fetch('https://shop-management-jj6y.onrender.com/', { mode: 'no-cors', priority: 'low' }).catch(() => {});
+  } catch (e) {
+    // Ignore prewarm error
+  }
+}
 
 // Attach token to every request automatically
 API.interceptors.request.use((config) => {

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 
 const LoginPage = ({ onSwitch }) => {
@@ -7,6 +7,19 @@ const LoginPage = ({ onSwitch }) => {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [slowServerHint, setSlowServerHint] = useState(false);
+
+  useEffect(() => {
+    let timer;
+    if (loading) {
+      timer = setTimeout(() => {
+        setSlowServerHint(true);
+      }, 2500);
+    } else {
+      setSlowServerHint(false);
+    }
+    return () => clearTimeout(timer);
+  }, [loading]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -17,8 +30,10 @@ const LoginPage = ({ onSwitch }) => {
     } catch (err) {
       if (err.response?.data?.message) {
         setError(err.response.data.message);
+      } else if (err.message && err.message.includes('timeout')) {
+        setError('সার্ভার সাড়া দিতে সময় নিচ্ছে। অনুগ্রহ করে আর একবার চেষ্টা করুন।');
       } else if (err.message) {
-        setError(`সার্ভার কানেকশন এরর (${err.message})। ব্যাকএন্ড লাইভ আছে কি না চেক করুন।`);
+        setError(`সার্ভার কানেকশন সমস্যা (${err.message})। ব্যাকএন্ড জাগ্রত হচ্ছে, আবার চেষ্টা করুন।`);
       } else {
         setError('লগইন ব্যর্থ হয়েছে। সার্ভারে পৌঁছানো যাচ্ছে না।');
       }
@@ -93,6 +108,22 @@ const LoginPage = ({ onSwitch }) => {
           <button type="submit" className="btn btn-primary" disabled={loading}>
             {loading ? 'লগইন হচ্ছে...' : 'লগইন করুন'}
           </button>
+
+          {slowServerHint && loading && (
+            <div style={{
+              marginTop: '14px',
+              padding: '10px 14px',
+              background: '#f0fdfa',
+              border: '1px solid #99f6e4',
+              borderRadius: '10px',
+              fontSize: '13px',
+              color: '#0f766e',
+              textAlign: 'center',
+              lineHeight: '1.4'
+            }}>
+              ⏳ ক্লাউড সার্ভার প্রস্তুত হচ্ছে... প্রথমবার ২০-৩০ সেকেন্ড সময় লাগতে পারে, অনুগ্রহ করে অপেক্ষা করুন।
+            </div>
+          )}
         </form>
 
         <p className="auth-switch">

@@ -18,7 +18,10 @@ const AppContent = () => {
     return (
       <div className="loading-screen">
         <div className="spinner"></div>
-        <p>লোড হচ্ছে...</p>
+        <p style={{ fontWeight: 600, fontSize: '16px', color: 'var(--stone-800)' }}>লোড হচ্ছে...</p>
+        <p style={{ fontSize: '13px', color: 'var(--stone-500)', maxWidth: '300px', textAlign: 'center', marginTop: '6px', lineHeight: '1.4' }}>
+          সার্ভার প্রস্তুত হচ্ছে, অনুগ্রহ করে কয়েক সেকেন্ড অপেক্ষা করুন...
+        </p>
       </div>
     );
   }

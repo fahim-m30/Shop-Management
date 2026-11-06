@@ -1,5 +1,5 @@
 // Service Worker for Shop Manager PWA
-const CACHE_NAME = 'shop-manager-v3';
+const CACHE_NAME = 'shop-manager-v4';
 
 self.addEventListener('install', (event) => {
   self.skipWaiting();

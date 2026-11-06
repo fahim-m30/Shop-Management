@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 
 const RegisterPage = ({ onSwitch }) => {
@@ -7,6 +7,19 @@ const RegisterPage = ({ onSwitch }) => {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [slowServerHint, setSlowServerHint] = useState(false);
+
+  useEffect(() => {
+    let timer;
+    if (loading) {
+      timer = setTimeout(() => {
+        setSlowServerHint(true);
+      }, 2500);
+    } else {
+      setSlowServerHint(false);
+    }
+    return () => clearTimeout(timer);
+  }, [loading]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -15,7 +28,7 @@ const RegisterPage = ({ onSwitch }) => {
     try {
       await register(form.name.trim(), form.email.trim().toLowerCase(), form.password, form.shopName.trim());
     } catch (err) {
-      setError(err.response?.data?.message || 'রেজিস্ট্রেশন ব্যর্থ হয়েছে।');
+      setError(err.response?.data?.message || 'রেজিস্ট্রেশন ব্যর্থ হয়েছে। আবার চেষ্টা করুন।');
     } finally {
       setLoading(false);
     }
@@ -70,10 +83,9 @@ const RegisterPage = ({ onSwitch }) => {
             <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
               <input
                 type={showPassword ? 'text' : 'password'}
-                placeholder="কমপক্ষে ৬ অক্ষর"
+                placeholder="কমপক্ষে ৬ সংখ্যার পাসওয়ার্ড"
                 value={form.password}
                 onChange={(e) => setForm({ ...form, password: e.target.value })}
-                minLength={6}
                 autoCapitalize="none"
                 autoCorrect="off"
                 spellCheck="false"
@@ -96,8 +108,7 @@ const RegisterPage = ({ onSwitch }) => {
                   color: '#475569',
                   display: 'flex',
                   alignItems: 'center',
-                  gap: '4px',
-                  transition: 'all 0.15s ease'
+                  gap: '4px'
                 }}
               >
                 {showPassword ? '🙈 লুকান' : '👁️ দেখুন'}
@@ -105,12 +116,28 @@ const RegisterPage = ({ onSwitch }) => {
             </div>
           </div>
           <button type="submit" className="btn btn-primary" disabled={loading}>
-            {loading ? 'তৈরি হচ্ছে...' : 'একাউন্ট তৈরি করুন'}
+            {loading ? 'অ্যাকাউন্ট তৈরি হচ্ছে...' : 'রেজিস্ট্রেশন সম্পন্ন করুন'}
           </button>
+
+          {slowServerHint && loading && (
+            <div style={{
+              marginTop: '14px',
+              padding: '10px 14px',
+              background: '#f0fdfa',
+              border: '1px solid #99f6e4',
+              borderRadius: '10px',
+              fontSize: '13px',
+              color: '#0f766e',
+              textAlign: 'center',
+              lineHeight: '1.4'
+            }}>
+              ⏳ ক্লাউড সার্ভার প্রস্তুত হচ্ছে... প্রথমবার ২০-৩০ সেকেন্ড সময় লাগতে পারে, অনুগ্রহ করে অপেক্ষা করুন।
+            </div>
+          )}
         </form>
 
         <p className="auth-switch">
-          আগে থেকে একাউন্ট আছে?{' '}
+          ইতিমধ্যে একাউন্ট আছে?{' '}
           <button onClick={onSwitch} className="link-btn">লগইন করুন</button>
         </p>
       </div>

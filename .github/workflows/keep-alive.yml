@@ -2,9 +2,12 @@ name: Keep Render Backend Alive 24/7
 
 on:
   schedule:
-    # Runs every 14 minutes (Render sleeps after 15 min inactivity)
-    - cron: '*/14 * * * *'
+    # Runs every 10 minutes to prevent Render free-tier spin down
+    - cron: '*/10 * * * *'
   workflow_dispatch: # Allows manual trigger from GitHub UI
+  push:
+    branches:
+      - main
 
 jobs:
   ping-backend:
@@ -13,12 +16,12 @@ jobs:
       - name: Ping Render Backend Service
         run: |
           echo "Sending keep-alive ping to Render backend..."
-          RESPONSE=$(curl -s -o /dev/null -w "%{http_code}" --max-time 45 https://shop-management-jj6y.onrender.com/api/health)
+          RESPONSE=$(curl -s -o /dev/null -w "%{http_code}" --max-time 60 https://shop-management-jj6y.onrender.com/)
           echo "Ping response HTTP status: $RESPONSE"
           if [ "$RESPONSE" -ge 200 ] && [ "$RESPONSE" -lt 400 ]; then
             echo "✅ Backend is alive and active!"
           else
-            echo "⚠️ Backend response was $RESPONSE, retrying once..."
-            sleep 5
-            curl -s https://shop-management-jj6y.onrender.com/api/health
+            echo "⚠️ Status $RESPONSE, retrying with fallback..."
+            sleep 3
+            curl -s -m 45 https://shop-management-jj6y.onrender.com/
           fi
