@@ -39,6 +39,27 @@ API.interceptors.request.use((config) => {
   return config;
 });
 
+// Auto retry once on network error, timeout, or server cold-start gateway error
+API.interceptors.response.use(
+  (response) => response,
+  async (error) => {
+    const config = error.config;
+    if (!config || config.__isRetry) {
+      return Promise.reject(error);
+    }
+    // Retry on network errors, timeout, or 502/503/504 while Render is waking up
+    if (
+      error.code === 'ECONNABORTED' ||
+      !error.response ||
+      (error.response.status >= 502 && error.response.status <= 504)
+    ) {
+      config.__isRetry = true;
+      return new Promise((resolve) => setTimeout(() => resolve(API(config)), 2000));
+    }
+    return Promise.reject(error);
+  }
+);
+
 // Auth
 export const registerUser = (data) => API.post('/auth/register', data);
 export const loginUser = (data) => API.post('/auth/login', data);
