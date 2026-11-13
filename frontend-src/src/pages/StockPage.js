@@ -51,16 +51,11 @@ const StockPage = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const numAmount = Number(form.amount) || 0;
+    const numAmount = Math.max(0, Number(form.amount) || 0);
     const numCash = Math.max(0, Number(form.cashPaid) || 0);
 
-    if (numAmount <= 0) {
-      setError('মালের মোট পরিমাণ (টাকা) লিখুন।');
-      return;
-    }
-
-    if (numCash > numAmount) {
-      setError('ক্যাশ থেকে দেওয়া টাকা মালের মোট দামের চেয়ে বেশি হতে পারে না।');
+    if (numAmount <= 0 && numCash <= 0) {
+      setError('মালের টাকা অথবা ক্যাশ থেকে দেওয়া টাকার যেকোনো একটি লিখুন।');
       return;
     }
 
@@ -314,8 +309,8 @@ const StockPage = () => {
                       <td style={{ fontWeight: 600, color: 'var(--stone-800)' }}>
                         {s.description || '—'}
                       </td>
-                      <td className="amount" style={{ fontWeight: 700, color: 'var(--primary)' }}>
-                        {tk(s.amount)}
+                      <td className="amount" style={{ fontWeight: 700, color: s.amount > 0 ? 'var(--primary)' : 'var(--stone-400)' }}>
+                        {s.amount > 0 ? tk(s.amount) : '—'}
                       </td>
                       <td>
                         {cash > 0 ? (

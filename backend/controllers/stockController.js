@@ -7,20 +7,18 @@ const addStock = async (req, res) => {
   try {
     const { amount, cashPaid, date, description } = req.body;
 
-    const numAmount = Number(amount) || 0;
+    const numAmount = Math.max(0, Number(amount) || 0);
     const numCash = (cashPaid !== undefined && cashPaid !== null && cashPaid !== '' && !isNaN(cashPaid)) 
       ? Math.max(0, Number(cashPaid)) 
       : 0;
 
     if (numAmount <= 0 && numCash <= 0) {
-      return res.status(400).json({ message: 'মালের টাকা অথবা ক্যাশ থেকে দেওয়া টাকার যেকোনো একটি পরিমাণ দিন।' });
+      return res.status(400).json({ message: 'মালের টাকা অথবা ক্যাশ থেকে দেওয়া টাকার পরিমাণ দিন।' });
     }
-
-    const finalAmount = numAmount > 0 ? numAmount : numCash;
 
     const stock = await Stock.create({
       manager: req.user.id,
-      amount: finalAmount,
+      amount: numAmount,
       cashPaid: numCash,
       date: date || new Date(),
       description: description || ''
@@ -29,7 +27,7 @@ const addStock = async (req, res) => {
     // Sub-second real-time broadcast to all connected devices (< 100ms)
     notifyManagerChange(req.user.id, 'stock_added', { id: stock._id });
 
-    res.status(201).json({ message: 'মাল ঢোকার তথ্য সফলভাবে সেভ হয়েছে!', stock });
+    res.status(201).json({ message: 'তথ্য সফলভাবে সেভ হয়েছে!', stock });
   } catch (error) {
     res.status(500).json({ message: 'সার্ভার এরর', error: error.message });
   }
