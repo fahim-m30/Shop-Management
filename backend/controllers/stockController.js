@@ -10,9 +10,10 @@ const addStock = async (req, res) => {
       return res.status(400).json({ message: 'সঠিক পরিমাণ দিন।' });
     }
 
-    const finalCashPaid = (cashPaid !== undefined && cashPaid !== null && cashPaid !== '') 
+    // Cash paid is completely optional: if omitted, blank, or NaN, default to 0
+    const finalCashPaid = (cashPaid !== undefined && cashPaid !== null && cashPaid !== '' && !isNaN(cashPaid)) 
       ? Math.max(0, Number(cashPaid)) 
-      : Number(amount);
+      : 0;
 
     const stock = await Stock.create({
       manager: req.user.id,
@@ -41,7 +42,7 @@ const getStock = async (req, res) => {
     const stocks = await Stock.find(filter).sort({ date: -1 });
 
     const totalAmount = stocks.reduce((sum, s) => sum + s.amount, 0);
-    const totalCashPaid = stocks.reduce((sum, s) => sum + (s.cashPaid !== undefined ? s.cashPaid : s.amount), 0);
+    const totalCashPaid = stocks.reduce((sum, s) => sum + (Number(s.cashPaid) || 0), 0);
 
     res.json({ stocks, totalAmount, totalCashPaid });
   } catch (error) {

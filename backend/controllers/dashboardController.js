@@ -45,8 +45,8 @@ const getDashboard = async (req, res) => {
     const totalTodaySales = todaySales.reduce((sum, s) => sum + s.amount, 0);
     const totalTodayIncome = todaySales.reduce((sum, s) => sum + s.income, 0);
     const totalTodayStock = todayStock.reduce((sum, s) => sum + s.amount, 0);
-    // Cash given from drawer for stock purchases today
-    const totalTodayCashStock = todayStock.reduce((sum, s) => sum + (s.cashPaid !== undefined ? s.cashPaid : s.amount), 0);
+    // Cash given from drawer for stock purchases today (only if specified, defaults to 0)
+    const totalTodayCashStock = todayStock.reduce((sum, s) => sum + (Number(s.cashPaid) || 0), 0);
     // Daily Cash in Hand = Today's Sales - Today's Cash spent on Stock
     const todayRemainingCash = totalTodaySales - totalTodayCashStock;
 
@@ -83,7 +83,7 @@ const getDashboard = async (req, res) => {
 
       const lSalesTotal = lSales.reduce((sum, s) => sum + s.amount, 0);
       const lStockTotal = lStock.reduce((sum, s) => sum + s.amount, 0);
-      const lCashStock = lStock.reduce((sum, s) => sum + (s.cashPaid !== undefined ? s.cashPaid : s.amount), 0);
+      const lCashStock = lStock.reduce((sum, s) => sum + (Number(s.cashPaid) || 0), 0);
 
       lastDayStats = {
         date: lastActiveDate,

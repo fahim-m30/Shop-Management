@@ -16,12 +16,10 @@ const stockSchema = new mongoose.Schema({
     required: true,
     min: 0
   },
-  // Cash paid from counter drawer for this stock
+  // Cash paid from counter drawer for this stock (optional, defaults to 0)
   cashPaid: {
     type: Number,
-    default: function() {
-      return this.amount || 0;
-    }
+    default: 0
   },
   description: {
     type: String,
@@ -36,13 +34,13 @@ const stockSchema = new mongoose.Schema({
   }
 }, { timestamps: true });
 
-// Auto-fill year, month, and default cashPaid before saving
+// Auto-fill year, month, and clean cashPaid before saving
 stockSchema.pre('save', function(next) {
   const d = new Date(this.date);
   this.year = d.getFullYear();
   this.month = d.getMonth() + 1;
-  if (this.cashPaid === undefined || this.cashPaid === null) {
-    this.cashPaid = this.amount;
+  if (this.cashPaid === undefined || this.cashPaid === null || isNaN(this.cashPaid)) {
+    this.cashPaid = 0;
   }
   next();
 });
