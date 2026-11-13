@@ -121,7 +121,7 @@ const StockPage = () => {
             📦 মাল ঢোকার হিসাব
           </h2>
           <p style={{ fontSize: '13px', color: 'var(--stone-500)', margin: '2px 0 0' }}>
-            দোকানে নতুন মাল কেনার হিসাব এন্ট্রি করুন ও তালিকা দেখুন।
+            নিজে থেকে বা ক্যাশের টাকা নিয়ে মাল কেনার হিসাব এন্ট্রি করুন।
           </p>
         </div>
 
@@ -146,7 +146,7 @@ const StockPage = () => {
           </div>
           {totalCashPaid > 0 && (
             <div style={{ background: '#fef3c7', color: '#b45309', border: '1px solid #fde68a', padding: '5px 10px', borderRadius: '12px', fontSize: '13px', fontWeight: 700 }}>
-              ক্যাশ পরিশোধ: {tk(totalCashPaid)}
+              ক্যাশ থেকে দেওয়া: {tk(totalCashPaid)}
             </div>
           )}
         </div>
@@ -163,6 +163,7 @@ const StockPage = () => {
           {error && <div className="alert alert-error" style={{ padding: '8px 12px', fontSize: '13px' }}>⚠️ {error}</div>}
           
           <form onSubmit={handleSubmit}>
+            {/* Stock Total Amount */}
             <div className="form-group" style={{ marginBottom: '12px' }}>
               <label style={{ fontSize: '12px' }}>মালের মোট পরিমাণ (টাকা) *</label>
               <input
@@ -176,21 +177,71 @@ const StockPage = () => {
               />
             </div>
 
-            {/* Completely OPTIONAL Cash field (No * / No forced requirement) */}
-            <div className="form-group" style={{ marginBottom: '12px' }}>
-              <label style={{ fontSize: '12px' }}>
-                ক্যাশ বাক্স থেকে দেওয়া হয়েছে (টাকা) <span style={{ color: 'var(--stone-500)', fontWeight: 500 }}>(ঐচ্ছিক)</span>
+            {/* 1-Click Fast Options: "নিজে থেকে" vs "ক্যাশ থেকে" */}
+            <div className="form-group" style={{ marginBottom: '14px' }}>
+              <label style={{ fontSize: '12px', display: 'block', marginBottom: '6px' }}>
+                টাকা কোথা থেকে দেওয়া হয়েছে? <span style={{ color: 'var(--stone-500)', fontWeight: 400 }}>(ঐচ্ছিক)</span>
               </label>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginBottom: '8px' }}>
+                {/* Option 1: নিজে থেকে (০৳ ক্যাশ) */}
+                <button
+                  type="button"
+                  onClick={() => setForm({ ...form, cashPaid: '' })}
+                  style={{
+                    padding: '8px 10px',
+                    fontSize: '12px',
+                    fontWeight: 600,
+                    borderRadius: '8px',
+                    border: form.cashPaid === '' || Number(form.cashPaid) === 0 ? '1.5px solid var(--primary)' : '1px solid var(--stone-200)',
+                    background: form.cashPaid === '' || Number(form.cashPaid) === 0 ? 'var(--primary-light)' : 'var(--stone-50)',
+                    color: form.cashPaid === '' || Number(form.cashPaid) === 0 ? 'var(--primary)' : 'var(--stone-600)',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '4px'
+                  }}
+                >
+                  <span>👤 নিজে থেকে (০৳)</span>
+                </button>
+
+                {/* Option 2: সম্পূর্ণ টাকা ক্যাশ থেকে */}
+                <button
+                  type="button"
+                  onClick={() => setForm({ ...form, cashPaid: form.amount || '' })}
+                  disabled={!form.amount || Number(form.amount) <= 0}
+                  style={{
+                    padding: '8px 10px',
+                    fontSize: '12px',
+                    fontWeight: 600,
+                    borderRadius: '8px',
+                    border: form.cashPaid !== '' && Number(form.cashPaid) === Number(form.amount) && Number(form.amount) > 0 ? '1.5px solid var(--emerald)' : '1px solid var(--stone-200)',
+                    background: form.cashPaid !== '' && Number(form.cashPaid) === Number(form.amount) && Number(form.amount) > 0 ? 'var(--emerald-light)' : 'var(--stone-50)',
+                    color: form.cashPaid !== '' && Number(form.cashPaid) === Number(form.amount) && Number(form.amount) > 0 ? 'var(--emerald)' : 'var(--stone-600)',
+                    cursor: (!form.amount || Number(form.amount) <= 0) ? 'not-allowed' : 'pointer',
+                    opacity: (!form.amount || Number(form.amount) <= 0) ? 0.6 : 1,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '4px'
+                  }}
+                >
+                  <span>💵 সম্পূর্ণ ক্যাশ {form.amount ? `(৳${form.amount})` : ''}</span>
+                </button>
+              </div>
+
+              {/* Custom Cash Input */}
               <input
                 type="number"
-                placeholder="যদি ক্যাশ বাক্স থেকে দেন (ফাঁকা রাখলে ০)"
+                placeholder="বা নির্দিষ্ট ক্যাশের টাকা লিখুন (যেমন: ২০০০)"
                 value={form.cashPaid}
                 onChange={e => setForm({ ...form, cashPaid: e.target.value })}
                 min="0"
                 style={{ padding: '10px 14px' }}
               />
-              <span style={{ fontSize: '11px', color: 'var(--stone-500)', marginTop: '3px', display: 'block' }}>
-                💡 ক্যাশ থেকে দিলে সংখ্যা লিখুন, না দিলে সম্পূর্ণ ফাঁকা রাখুন (বাধ্যতামূলক নয়)।
+              <span style={{ fontSize: '11px', color: 'var(--stone-500)', marginTop: '4px', display: 'block', lineHeight: '1.4' }}>
+                💡 <strong>নিজে থেকে</strong> হলে ক্যাশ ০ থাকবে। <strong>ক্যাশ থেকে</strong> টাকা নিলে 'সম্পূর্ণ ক্যাশ' চাপুন বা নির্দিষ্ট পরিমাণ লিখুন।
               </span>
             </div>
 
@@ -231,34 +282,45 @@ const StockPage = () => {
                 <tr>
                   <th>তারিখ</th>
                   <th>মালের টাকা</th>
-                  <th>ক্যাশ পরিশোধ</th>
+                  <th>টাকার উৎস</th>
                   <th>বিবরণ</th>
                   <th style={{ textAlign: 'center' }}>অ্যাকশন</th>
                 </tr>
               </thead>
               <tbody>
-                {stocks.map(s => (
-                  <tr key={s._id}>
-                    <td>{new Date(s.date).toLocaleDateString('bn-BD')}</td>
-                    <td className="amount">{tk(s.amount)}</td>
-                    <td className="amount" style={{ color: Number(s.cashPaid) > 0 ? '#b45309' : 'var(--stone-400)' }}>
-                      {Number(s.cashPaid) > 0 ? tk(s.cashPaid) : '—'}
-                    </td>
-                    <td>{s.description || '—'}</td>
-                    <td style={{ textAlign: 'center' }}>
-                      <button className="btn btn-danger-sm" onClick={() => handleDelete(s._id)} title="মুছুন">
-                        🗑️
-                      </button>
-                    </td>
-                  </tr>
-                ))}
+                {stocks.map(s => {
+                  const paid = Number(s.cashPaid) || 0;
+                  return (
+                    <tr key={s._id}>
+                      <td>{new Date(s.date).toLocaleDateString('bn-BD')}</td>
+                      <td className="amount">{tk(s.amount)}</td>
+                      <td>
+                        {paid > 0 ? (
+                          <span style={{ color: '#b45309', fontWeight: 600 }}>
+                            💵 ক্যাশ: {tk(paid)}
+                          </span>
+                        ) : (
+                          <span style={{ color: 'var(--stone-500)', fontSize: '12px', background: 'var(--stone-100)', padding: '2px 8px', borderRadius: '10px' }}>
+                            👤 নিজে থেকে
+                          </span>
+                        )}
+                      </td>
+                      <td>{s.description || '—'}</td>
+                      <td style={{ textAlign: 'center' }}>
+                        <button className="btn btn-danger-sm" onClick={() => handleDelete(s._id)} title="মুছুন">
+                          🗑️
+                        </button>
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
               <tfoot>
                 <tr className="total-row">
                   <td><strong>সর্বমোট</strong></td>
                   <td className="amount"><strong>{tk(totalAmount)}</strong></td>
-                  <td className="amount" style={{ color: '#b45309' }}>
-                    {totalCashPaid > 0 ? <strong>{tk(totalCashPaid)}</strong> : '—'}
+                  <td style={{ color: '#b45309', fontWeight: 700 }}>
+                    {totalCashPaid > 0 ? tk(totalCashPaid) : '—'}
                   </td>
                   <td colSpan="2"></td>
                 </tr>
