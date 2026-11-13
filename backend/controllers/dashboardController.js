@@ -1,6 +1,28 @@
 const Sales = require('../models/Sales');
 const Stock = require('../models/Stock');
 
+// Helper to get today's start and end timestamps in Bangladesh Time (UTC+6)
+const getBangladeshTodayRange = () => {
+  const now = new Date();
+  const dhakaFormatter = new Intl.DateTimeFormat('en-US', {
+    timeZone: 'Asia/Dhaka',
+    year: 'numeric',
+    month: 'numeric',
+    day: 'numeric'
+  });
+  const parts = dhakaFormatter.formatToParts(now);
+  const y = parseInt(parts.find(p => p.type === 'year').value);
+  const m = parseInt(parts.find(p => p.type === 'month').value) - 1;
+  const d = parseInt(parts.find(p => p.type === 'day').value);
+
+  // Midnight Dhaka in UTC (UTC+6 -> subtract 6 hours)
+  const start = new Date(Date.UTC(y, m, d, -6, 0, 0, 0));
+  // End of day Dhaka in UTC
+  const end = new Date(Date.UTC(y, m, d, 17, 59, 59, 999));
+
+  return { start, end };
+};
+
 // @desc  Get dashboard summary (current month by default)
 // @route GET /api/dashboard
 const getDashboard = async (req, res) => {
@@ -18,6 +40,8 @@ const getDashboard = async (req, res) => {
     const totalMonthlySales = monthlySales.reduce((sum, s) => sum + s.amount, 0);
     const totalMonthlyIncome = monthlySales.reduce((sum, s) => sum + s.income, 0);
     const totalMonthlyStock = monthlyStock.reduce((sum, s) => sum + s.amount, 0);
+    const totalMonthlyCashStock = monthlyStock.reduce((sum, s) => sum + (Number(s.cashPaid) || 0), 0);
+    const totalMonthlyOwnStock = monthlyStock.reduce((sum, s) => sum + (s.ownAmount !== undefined ? Number(s.ownAmount) : Math.max(0, s.amount - (Number(s.cashPaid) || 0))), 0);
 
     // --- All Time Stats ---
     const allSales = await Sales.find({ manager: managerId });
@@ -26,12 +50,11 @@ const getDashboard = async (req, res) => {
     const totalAllTimeSales = allSales.reduce((sum, s) => sum + s.amount, 0);
     const totalAllTimeIncome = allSales.reduce((sum, s) => sum + s.income, 0);
     const totalAllTimeStock = allStock.reduce((sum, s) => sum + s.amount, 0);
+    const totalAllTimeCashStock = allStock.reduce((sum, s) => sum + (Number(s.cashPaid) || 0), 0);
+    const totalAllTimeOwnStock = allStock.reduce((sum, s) => sum + (s.ownAmount !== undefined ? Number(s.ownAmount) : Math.max(0, s.amount - (Number(s.cashPaid) || 0))), 0);
 
-    // --- Today's Stats ---
-    const todayStart = new Date();
-    todayStart.setHours(0, 0, 0, 0);
-    const todayEnd = new Date();
-    todayEnd.setHours(23, 59, 59, 999);
+    // --- Today's Stats (Accurate to Bangladesh Time) ---
+    const { start: todayStart, end: todayEnd } = getBangladeshTodayRange();
 
     const todaySales = await Sales.find({
       manager: managerId,
@@ -45,8 +68,10 @@ const getDashboard = async (req, res) => {
     const totalTodaySales = todaySales.reduce((sum, s) => sum + s.amount, 0);
     const totalTodayIncome = todaySales.reduce((sum, s) => sum + s.income, 0);
     const totalTodayStock = todayStock.reduce((sum, s) => sum + s.amount, 0);
-    // Cash given from drawer for stock purchases today (only if specified, defaults to 0)
+    // Cash given from drawer for stock purchases today (জমানো টাকা)
     const totalTodayCashStock = todayStock.reduce((sum, s) => sum + (Number(s.cashPaid) || 0), 0);
+    // Own pocket money for stock purchases today (নিজের টাকা)
+    const totalTodayOwnStock = todayStock.reduce((sum, s) => sum + (s.ownAmount !== undefined ? Number(s.ownAmount) : Math.max(0, s.amount - (Number(s.cashPaid) || 0))), 0);
     // Daily Cash in Hand = Today's Sales - Today's Cash spent on Stock
     const todayRemainingCash = totalTodaySales - totalTodayCashStock;
 
@@ -84,6 +109,7 @@ const getDashboard = async (req, res) => {
       const lSalesTotal = lSales.reduce((sum, s) => sum + s.amount, 0);
       const lStockTotal = lStock.reduce((sum, s) => sum + s.amount, 0);
       const lCashStock = lStock.reduce((sum, s) => sum + (Number(s.cashPaid) || 0), 0);
+      const lOwnStock = lStock.reduce((sum, s) => sum + (s.ownAmount !== undefined ? Number(s.ownAmount) : Math.max(0, s.amount - (Number(s.cashPaid) || 0))), 0);
 
       lastDayStats = {
         date: lastActiveDate,
@@ -91,6 +117,7 @@ const getDashboard = async (req, res) => {
         totalIncome: parseFloat(lSales.reduce((sum, s) => sum + s.income, 0).toFixed(2)),
         totalStock: parseFloat(lStockTotal.toFixed(2)),
         totalCashStock: parseFloat(lCashStock.toFixed(2)),
+        totalOwnStock: parseFloat(lOwnStock.toFixed(2)),
         remainingCash: parseFloat((lSalesTotal - lCashStock).toFixed(2))
       };
     }
@@ -123,18 +150,23 @@ const getDashboard = async (req, res) => {
         totalIncome: parseFloat(totalTodayIncome.toFixed(2)),
         totalStock: parseFloat(totalTodayStock.toFixed(2)),
         totalCashStock: parseFloat(totalTodayCashStock.toFixed(2)),
+        totalOwnStock: parseFloat(totalTodayOwnStock.toFixed(2)),
         remainingCash: parseFloat(todayRemainingCash.toFixed(2))
       },
       lastDay: lastDayStats,
       monthly: {
         totalSales: parseFloat(totalMonthlySales.toFixed(2)),
         totalIncome: parseFloat(totalMonthlyIncome.toFixed(2)),
-        totalStock: parseFloat(totalMonthlyStock.toFixed(2))
+        totalStock: parseFloat(totalMonthlyStock.toFixed(2)),
+        totalCashStock: parseFloat(totalMonthlyCashStock.toFixed(2)),
+        totalOwnStock: parseFloat(totalMonthlyOwnStock.toFixed(2))
       },
       allTime: {
         totalSales: parseFloat(totalAllTimeSales.toFixed(2)),
         totalIncome: parseFloat(totalAllTimeIncome.toFixed(2)),
-        totalStock: parseFloat(totalAllTimeStock.toFixed(2))
+        totalStock: parseFloat(totalAllTimeStock.toFixed(2)),
+        totalCashStock: parseFloat(totalAllTimeCashStock.toFixed(2)),
+        totalOwnStock: parseFloat(totalAllTimeOwnStock.toFixed(2))
       },
       monthlyBreakdown
     });

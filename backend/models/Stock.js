@@ -16,8 +16,13 @@ const stockSchema = new mongoose.Schema({
     default: 0,
     min: 0
   },
-  // Cash paid from counter drawer for this stock (optional, defaults to 0)
+  // Cash paid from counter drawer / saved cash (জমানো টাকা)
   cashPaid: {
+    type: Number,
+    default: 0
+  },
+  // Own pocket money (নিজের টাকা)
+  ownAmount: {
     type: Number,
     default: 0
   },

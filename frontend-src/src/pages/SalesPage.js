@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { addSales, getSales, deleteSales } from '../api/api';
+import { broadcastSync, subscribeToSync, getLocalDateString } from '../utils/sync';
 
 const MONTHS = [
   'জানুয়ারি', 'ফেব্রুয়ারি', 'মার্চ', 'এপ্রিল',
@@ -8,7 +9,7 @@ const MONTHS = [
 ];
 
 const SalesPage = () => {
-  const [form, setForm] = useState({ amount: '', date: new Date().toISOString().split('T')[0], description: '' });
+  const [form, setForm] = useState({ amount: '', date: getLocalDateString(), description: '' });
   const [sales, setSales] = useState([]);
   const [totals, setTotals] = useState({ totalSales: 0, totalIncome: 0 });
   const [loading, setLoading] = useState(false);
@@ -24,8 +25,11 @@ const SalesPage = () => {
   const fetchSales = useCallback(async () => {
     try {
       const res = await getSales({ month: filterMonth, year: filterYear });
-      setSales(res.data.sales);
-      setTotals({ totalSales: res.data.totalSales, totalIncome: res.data.totalIncome });
+      setSales(res.data.sales || []);
+      setTotals({ 
+        totalSales: res.data.totalSales || 0, 
+        totalIncome: res.data.totalIncome || 0 
+      });
     } catch (err) {
       console.error(err);
     }
@@ -34,43 +38,61 @@ const SalesPage = () => {
   // Real-time synchronization
   useEffect(() => {
     fetchSales();
-
-    const handleSync = () => fetchSales();
-    window.addEventListener('shop-sync', handleSync);
-    window.addEventListener('focus', handleSync);
-
-    const interval = setInterval(() => {
-      if (document.visibilityState === 'visible') {
-        fetchSales();
-      }
-    }, 6000);
-
-    return () => {
-      window.removeEventListener('shop-sync', handleSync);
-      window.removeEventListener('focus', handleSync);
-      clearInterval(interval);
-    };
+    const unsubscribe = subscribeToSync(fetchSales, 3000);
+    return () => unsubscribe();
   }, [fetchSales]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!form.amount || form.amount <= 0) {
+    const numAmount = Number(form.amount) || 0;
+    if (numAmount <= 0) {
       setError('সঠিক পরিমাণ দিন।');
       return;
     }
+
     setLoading(true);
     setError('');
     setMsg('');
+
+    // --- Real-time Optimistic Update (0ms delay) ---
+    const tempId = 'temp_' + Date.now();
+    const income = parseFloat((numAmount * 0.12).toFixed(2));
+    const optimisticItem = {
+      _id: tempId,
+      date: form.date,
+      amount: numAmount,
+      income: income,
+      description: form.description
+    };
+
+    setSales(prev => [optimisticItem, ...prev]);
+    setTotals(prev => ({
+      totalSales: prev.totalSales + numAmount,
+      totalIncome: parseFloat((prev.totalIncome + income).toFixed(2))
+    }));
+    setMsg(`✅ বিক্রয় সেভ হয়েছে! আয় (১২%): ৳${income}`);
+
+    const submittedData = { 
+      amount: numAmount, 
+      date: form.date, 
+      description: form.description 
+    };
+
+    setForm({ amount: '', date: getLocalDateString(), description: '' });
+
     try {
-      await addSales({ amount: Number(form.amount), date: form.date, description: form.description });
-      const income = (Number(form.amount) * 0.12).toFixed(2);
-      setMsg(`✅ বিক্রয় সেভ হয়েছে! আয় (১২%): ৳${income}`);
-      setForm({ amount: '', date: new Date().toISOString().split('T')[0], description: '' });
-      fetchSales();
-      // Notify all other components in real-time
-      window.dispatchEvent(new CustomEvent('shop-sync'));
+      const res = await addSales(submittedData);
+      if (res.data?.sale) {
+        setSales(prev => prev.map(item => item._id === tempId ? res.data.sale : item));
+      }
+      broadcastSync('sale_added');
       setTimeout(() => setMsg(''), 3000);
     } catch (err) {
+      setSales(prev => prev.filter(item => item._id !== tempId));
+      setTotals(prev => ({
+        totalSales: prev.totalSales - numAmount,
+        totalIncome: parseFloat((prev.totalIncome - income).toFixed(2))
+      }));
       setError(err.response?.data?.message || 'এরর হয়েছে।');
     } finally {
       setLoading(false);
@@ -79,11 +101,20 @@ const SalesPage = () => {
 
   const handleDelete = async (id) => {
     if (!window.confirm('এই বিক্রয় এন্ট্রি মুছে ফেলতে চান?')) return;
+    const target = sales.find(s => s._id === id);
+    if (target) {
+      setSales(prev => prev.filter(s => s._id !== id));
+      setTotals(prev => ({
+        totalSales: Math.max(0, prev.totalSales - (Number(target.amount) || 0)),
+        totalIncome: Math.max(0, parseFloat((prev.totalIncome - (Number(target.income) || 0)).toFixed(2)))
+      }));
+    }
+
     try {
       await deleteSales(id);
-      fetchSales();
-      window.dispatchEvent(new CustomEvent('shop-sync'));
+      broadcastSync('sale_deleted');
     } catch (err) {
+      fetchSales();
       alert('মুছতে সমস্যা হয়েছে।');
     }
   };

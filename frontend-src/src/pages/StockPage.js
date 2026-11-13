@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { addStock, getStock, deleteStock } from '../api/api';
+import { broadcastSync, subscribeToSync, getLocalDateString } from '../utils/sync';
 
 const MONTHS = [
   'জানুয়ারি', 'ফেব্রুয়ারি', 'মার্চ', 'এপ্রিল',
@@ -9,14 +10,15 @@ const MONTHS = [
 
 const StockPage = () => {
   const [form, setForm] = useState({ 
-    amount: '', 
-    cashPaid: '', 
-    date: new Date().toISOString().split('T')[0], 
+    ownAmount: '',   // নিজের টাকা (পকেট থেকে)
+    cashPaid: '',    // জমানো টাকা (ক্যাশ বাক্স থেকে)
+    date: getLocalDateString(), 
     description: '' 
   });
   const [stocks, setStocks] = useState([]);
   const [totalAmount, setTotalAmount] = useState(0);
   const [totalCashPaid, setTotalCashPaid] = useState(0);
+  const [totalOwnAmount, setTotalOwnAmount] = useState(0);
   const [loading, setLoading] = useState(false);
   const [msg, setMsg] = useState('');
   const [error, setError] = useState('');
@@ -30,73 +32,86 @@ const StockPage = () => {
   const fetchStocks = useCallback(async () => {
     try {
       const res = await getStock({ month: filterMonth, year: filterYear });
-      setStocks(res.data.stocks);
-      setTotalAmount(res.data.totalAmount);
+      setStocks(res.data.stocks || []);
+      setTotalAmount(res.data.totalAmount || 0);
       setTotalCashPaid(res.data.totalCashPaid || 0);
+      setTotalOwnAmount(res.data.totalOwnAmount || 0);
     } catch (err) {
       console.error(err);
     }
   }, [filterMonth, filterYear]);
 
-  // Real-time synchronization
+  // Real-time synchronization across tabs and silent 3s background polling
   useEffect(() => {
     fetchStocks();
-
-    const handleSync = () => fetchStocks();
-    window.addEventListener('shop-sync', handleSync);
-    window.addEventListener('focus', handleSync);
-
-    const interval = setInterval(() => {
-      if (document.visibilityState === 'visible') {
-        fetchStocks();
-      }
-    }, 6000);
-
-    return () => {
-      window.removeEventListener('shop-sync', handleSync);
-      window.removeEventListener('focus', handleSync);
-      clearInterval(interval);
-    };
+    const unsubscribe = subscribeToSync(fetchStocks, 3000);
+    return () => unsubscribe();
   }, [fetchStocks]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const numAmount = Number(form.amount) || 0;
-    const numCash = Number(form.cashPaid) || 0;
+    const numOwn = Math.max(0, Number(form.ownAmount) || 0);
+    const numCash = Math.max(0, Number(form.cashPaid) || 0);
+    const totalStock = numOwn + numCash;
 
-    if (numAmount <= 0 && numCash <= 0) {
-      setError('মালের টাকা অথবা ক্যাশ থেকে নেওয়া টাকার যেকোনো একটি পরিমাণ লিখুন।');
+    if (totalStock <= 0) {
+      setError('নিজের টাকা অথবা জমানো টাকার যেকোনো একটি পরিমাণ লিখুন।');
       return;
     }
 
     setLoading(true);
     setError('');
     setMsg('');
+
+    // --- Real-time Optimistic Update (০ মিলিসেকেন্ডে স্ক্রিনে দৃশ্যমান হবে) ---
+    const tempId = 'temp_' + Date.now();
+    const optimisticItem = {
+      _id: tempId,
+      date: form.date,
+      amount: totalStock,
+      cashPaid: numCash,
+      ownAmount: numOwn,
+      description: form.description
+    };
+
+    setStocks(prev => [optimisticItem, ...prev]);
+    setTotalAmount(prev => prev + totalStock);
+    setTotalCashPaid(prev => prev + numCash);
+    setTotalOwnAmount(prev => prev + numOwn);
+    setMsg('✅ মাল ঢোকার তথ্য সেভ হয়েছে!');
+    
+    const submittedData = {
+      amount: totalStock,
+      ownAmount: numOwn,
+      cashPaid: numCash,
+      date: form.date,
+      description: form.description
+    };
+
+    // Reset form immediately
+    setForm({ 
+      ownAmount: '', 
+      cashPaid: '', 
+      date: getLocalDateString(), 
+      description: '' 
+    });
+
     try {
-      // If amount is left blank but cash is given, mal total is at least that cash amount
-      const finalAmount = numAmount > 0 ? numAmount : numCash;
-      const finalCash = numCash;
-
-      await addStock({ 
-        amount: finalAmount, 
-        cashPaid: finalCash,
-        date: form.date, 
-        description: form.description 
-      });
-
-      setMsg('✅ মাল ঢোকার তথ্য সেভ হয়েছে!');
-      setForm({ 
-        amount: '', 
-        cashPaid: '', 
-        date: new Date().toISOString().split('T')[0], 
-        description: '' 
-      });
-      fetchStocks();
-      // Notify all other components in real-time
-      window.dispatchEvent(new CustomEvent('shop-sync'));
+      const res = await addStock(submittedData);
+      // Replace optimistic item with server saved item
+      if (res.data?.stock) {
+        setStocks(prev => prev.map(item => item._id === tempId ? res.data.stock : item));
+      }
+      // Broadcast real-time sync to all other tabs and dashboard
+      broadcastSync('stock_added');
       setTimeout(() => setMsg(''), 3000);
     } catch (err) {
-      setError(err.response?.data?.message || 'এরর হয়েছে।');
+      // Revert optimistic update on network failure
+      setStocks(prev => prev.filter(item => item._id !== tempId));
+      setTotalAmount(prev => prev - totalStock);
+      setTotalCashPaid(prev => prev - numCash);
+      setTotalOwnAmount(prev => prev - numOwn);
+      setError(err.response?.data?.message || 'সেভ করতে সমস্যা হয়েছে। আবার চেষ্টা করুন।');
     } finally {
       setLoading(false);
     }
@@ -104,16 +119,29 @@ const StockPage = () => {
 
   const handleDelete = async (id) => {
     if (!window.confirm('এই এন্ট্রি মুছে ফেলতে চান?')) return;
+    
+    // Find item being deleted for optimistic subtraction
+    const target = stocks.find(s => s._id === id);
+    if (target) {
+      setStocks(prev => prev.filter(s => s._id !== id));
+      setTotalAmount(prev => Math.max(0, prev - (Number(target.amount) || 0)));
+      setTotalCashPaid(prev => Math.max(0, prev - (Number(target.cashPaid) || 0)));
+      const own = target.ownAmount !== undefined ? Number(target.ownAmount) : Math.max(0, target.amount - (Number(target.cashPaid) || 0));
+      setTotalOwnAmount(prev => Math.max(0, prev - own));
+    }
+
     try {
       await deleteStock(id);
-      fetchStocks();
-      window.dispatchEvent(new CustomEvent('shop-sync'));
+      broadcastSync('stock_deleted');
     } catch (err) {
+      fetchStocks();
       alert('মুছতে সমস্যা হয়েছে।');
     }
   };
 
   const tk = (a) => `৳${Number(a || 0).toLocaleString('bn-BD', { minimumFractionDigits: 2 })}`;
+
+  const calculatedTotal = (Number(form.ownAmount) || 0) + (Number(form.cashPaid) || 0);
 
   return (
     <div className="page-content" style={{ paddingBottom: '10px' }}>
@@ -124,11 +152,11 @@ const StockPage = () => {
             📦 মাল ঢোকার হিসাব
           </h2>
           <p style={{ fontSize: '13px', color: 'var(--stone-500)', margin: '2px 0 0' }}>
-            নিজে থেকে বা ক্যাশের টাকা নিয়ে মাল কেনার হিসাব এন্ট্রি করুন।
+            দোকানের জমানো টাকা অথবা নিজের ব্যক্তিগত টাকা দিয়ে মাল কেনার হিসাব।
           </p>
         </div>
 
-        {/* Filter controls */}
+        {/* Filter controls & Summary Badges */}
         <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
           <select 
             value={filterMonth} 
@@ -145,13 +173,14 @@ const StockPage = () => {
             {years.map(y => <option key={y} value={y}>{y}</option>)}
           </select>
           <div style={{ background: 'var(--primary-light)', color: 'var(--primary)', border: '1px solid var(--primary-border)', padding: '5px 10px', borderRadius: '12px', fontSize: '13px', fontWeight: 700 }}>
-            মোট মাল: {tk(totalAmount)}
+            📦 মোট মাল: {tk(totalAmount)}
           </div>
-          {totalCashPaid > 0 && (
-            <div style={{ background: '#fef3c7', color: '#b45309', border: '1px solid #fde68a', padding: '5px 10px', borderRadius: '12px', fontSize: '13px', fontWeight: 700 }}>
-              ক্যাশ থেকে দেওয়া: {tk(totalCashPaid)}
-            </div>
-          )}
+          <div style={{ background: '#fef3c7', color: '#b45309', border: '1px solid #fde68a', padding: '5px 10px', borderRadius: '12px', fontSize: '13px', fontWeight: 700 }}>
+            💵 জমানো টাকা: {tk(totalCashPaid)}
+          </div>
+          <div style={{ background: 'var(--stone-100)', color: 'var(--stone-700)', border: '1px solid var(--stone-200)', padding: '5px 10px', borderRadius: '12px', fontSize: '13px', fontWeight: 700 }}>
+            👤 নিজের টাকা: {tk(totalOwnAmount)}
+          </div>
         </div>
       </div>
 
@@ -166,92 +195,63 @@ const StockPage = () => {
           {error && <div className="alert alert-error" style={{ padding: '8px 12px', fontSize: '13px' }}>⚠️ {error}</div>}
           
           <form onSubmit={handleSubmit}>
-            {/* Stock Total Amount */}
-            <div className="form-group" style={{ marginBottom: '12px' }}>
-              <label style={{ fontSize: '12px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <span>মালের মোট পরিমাণ (টাকা)</span>
-                <span style={{ color: 'var(--stone-400)', fontWeight: 400, fontSize: '11px' }}>ঐচ্ছিক</span>
+            {/* Input 1: নিজের টাকা (পকেট থেকে) */}
+            <div className="form-group" style={{ marginBottom: '14px' }}>
+              <label style={{ fontSize: '13px', fontWeight: 600, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <span>👤 নিজের টাকা (পকেট থেকে)</span>
+                <span style={{ fontSize: '11px', color: 'var(--stone-400)', fontWeight: 400 }}>ঐচ্ছিক</span>
               </label>
               <input
                 type="number"
-                placeholder="যেমন: 5000 (খালি রাখলে ক্যাশ টাকা বসবে)"
-                value={form.amount}
-                onChange={e => setForm({ ...form, amount: e.target.value })}
+                placeholder="যেমন: 5000"
+                value={form.ownAmount}
+                onChange={e => setForm({ ...form, ownAmount: e.target.value })}
                 min="0"
                 style={{ padding: '10px 14px' }}
               />
+              <span style={{ fontSize: '11px', color: 'var(--stone-500)', marginTop: '3px', display: 'block', lineHeight: '1.3' }}>
+                💡 নিজের পকেট বা ব্যক্তিগত টাকা থেকে দিলে লিখবেন (ক্যাশ থেকে কাটবে না)।
+              </span>
             </div>
 
-            {/* 1-Click Fast Options: "নিজে থেকে" vs "ক্যাশ থেকে" */}
+            {/* Input 2: জমানো টাকা (ক্যাশ বাক্স থেকে) */}
             <div className="form-group" style={{ marginBottom: '14px' }}>
-              <label style={{ fontSize: '12px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
-                <span>ক্যাশ বাক্স থেকে দেওয়া টাকা</span>
-                <span style={{ color: 'var(--stone-400)', fontWeight: 400, fontSize: '11px' }}>ঐচ্ছিক</span>
+              <label style={{ fontSize: '13px', fontWeight: 600, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <span>💵 জমানো টাকা (ক্যাশ বাক্স থেকে)</span>
+                <span style={{ fontSize: '11px', color: '#b45309', fontWeight: 600 }}>দৈনিক ক্যাশ থেকে কাটবে</span>
               </label>
-
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginBottom: '8px' }}>
-                {/* Option 1: নিজে থেকে (০৳ ক্যাশ) */}
-                <button
-                  type="button"
-                  onClick={() => setForm({ ...form, cashPaid: '' })}
-                  style={{
-                    padding: '8px 10px',
-                    fontSize: '12px',
-                    fontWeight: 600,
-                    borderRadius: '8px',
-                    border: form.cashPaid === '' || Number(form.cashPaid) === 0 ? '1.5px solid var(--primary)' : '1px solid var(--stone-200)',
-                    background: form.cashPaid === '' || Number(form.cashPaid) === 0 ? 'var(--primary-light)' : 'var(--stone-50)',
-                    color: form.cashPaid === '' || Number(form.cashPaid) === 0 ? 'var(--primary)' : 'var(--stone-600)',
-                    cursor: 'pointer',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    gap: '4px'
-                  }}
-                >
-                  <span>👤 নিজে থেকে (০৳)</span>
-                </button>
-
-                {/* Option 2: সম্পূর্ণ টাকা ক্যাশ থেকে */}
-                <button
-                  type="button"
-                  onClick={() => {
-                    if (form.amount && Number(form.amount) > 0) {
-                      setForm({ ...form, cashPaid: form.amount });
-                    }
-                  }}
-                  style={{
-                    padding: '8px 10px',
-                    fontSize: '12px',
-                    fontWeight: 600,
-                    borderRadius: '8px',
-                    border: form.cashPaid !== '' && Number(form.cashPaid) === Number(form.amount) && Number(form.amount) > 0 ? '1.5px solid var(--emerald)' : '1px solid var(--stone-200)',
-                    background: form.cashPaid !== '' && Number(form.cashPaid) === Number(form.amount) && Number(form.amount) > 0 ? 'var(--emerald-light)' : 'var(--stone-50)',
-                    color: form.cashPaid !== '' && Number(form.cashPaid) === Number(form.amount) && Number(form.amount) > 0 ? 'var(--emerald)' : 'var(--stone-600)',
-                    cursor: 'pointer',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    gap: '4px'
-                  }}
-                >
-                  <span>💵 সম্পূর্ণ ক্যাশ {form.amount ? `(৳${form.amount})` : ''}</span>
-                </button>
-              </div>
-
-              {/* Custom Cash Input */}
               <input
                 type="number"
-                placeholder="বা ক্যাশের পরিমাণ লিখুন (যেমন: 1205)"
+                placeholder="যেমন: 1205"
                 value={form.cashPaid}
                 onChange={e => setForm({ ...form, cashPaid: e.target.value })}
                 min="0"
                 style={{ padding: '10px 14px' }}
               />
-              <span style={{ fontSize: '11px', color: 'var(--stone-500)', marginTop: '4px', display: 'block', lineHeight: '1.4' }}>
-                💡 যেকোনো একটি বা দুটিই একসাথে দিতে পারেন: শুধু ক্যাশ দিলে ক্যাশ থেকে কাটা হবে, শুধু মালের টাকা দিলে নিজে থেকে হিসাব হবে।
+              <span style={{ fontSize: '11px', color: '#047857', marginTop: '3px', display: 'block', lineHeight: '1.3', fontWeight: 500 }}>
+                💡 দোকানের ক্যাশ বাক্স/জমানো টাকা থেকে মাল কিনলে লিখবেন (আজকের বিক্রির ক্যাশ থেকে বিয়োগ হবে)।
               </span>
             </div>
+
+            {/* Real-time Live Calculation Preview */}
+            {calculatedTotal > 0 && (
+              <div style={{
+                background: 'var(--stone-50)',
+                border: '1.5px solid var(--primary-border)',
+                borderRadius: '8px',
+                padding: '10px 12px',
+                marginBottom: '14px',
+                fontSize: '13px',
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center'
+              }}>
+                <span style={{ color: 'var(--stone-700)', fontWeight: 600 }}>📦 মোট মাল এন্ট্রি হবে:</span>
+                <span style={{ fontWeight: 800, color: 'var(--primary)', fontSize: '15px' }}>
+                  {tk(calculatedTotal)}
+                </span>
+              </div>
+            )}
 
             <div className="form-group" style={{ marginBottom: '12px' }}>
               <label style={{ fontSize: '12px' }}>তারিখ</label>
@@ -289,29 +289,29 @@ const StockPage = () => {
               <thead>
                 <tr>
                   <th>তারিখ</th>
-                  <th>মালের টাকা</th>
-                  <th>টাকার উৎস</th>
+                  <th>👤 নিজের টাকা</th>
+                  <th>💵 জমানো টাকা</th>
+                  <th>📦 মোট মাল</th>
                   <th>বিবরণ</th>
                   <th style={{ textAlign: 'center' }}>অ্যাকশন</th>
                 </tr>
               </thead>
               <tbody>
                 {stocks.map(s => {
-                  const paid = Number(s.cashPaid) || 0;
+                  const cash = Number(s.cashPaid) || 0;
+                  const total = Number(s.amount) || 0;
+                  const own = s.ownAmount !== undefined ? Number(s.ownAmount) : Math.max(0, total - cash);
                   return (
                     <tr key={s._id}>
                       <td>{new Date(s.date).toLocaleDateString('bn-BD')}</td>
-                      <td className="amount">{tk(s.amount)}</td>
-                      <td>
-                        {paid > 0 ? (
-                          <span style={{ color: '#b45309', fontWeight: 600 }}>
-                            💵 ক্যাশ: {tk(paid)}
-                          </span>
-                        ) : (
-                          <span style={{ color: 'var(--stone-500)', fontSize: '12px', background: 'var(--stone-100)', padding: '2px 8px', borderRadius: '10px' }}>
-                            👤 নিজে থেকে
-                          </span>
-                        )}
+                      <td style={{ color: own > 0 ? 'var(--stone-800)' : 'var(--stone-400)', fontWeight: own > 0 ? 600 : 400 }}>
+                        {own > 0 ? tk(own) : '—'}
+                      </td>
+                      <td style={{ color: cash > 0 ? '#b45309' : 'var(--stone-400)', fontWeight: cash > 0 ? 700 : 400 }}>
+                        {cash > 0 ? tk(cash) : '—'}
+                      </td>
+                      <td className="amount" style={{ fontWeight: 700, color: 'var(--primary)' }}>
+                        {tk(total)}
                       </td>
                       <td>{s.description || '—'}</td>
                       <td style={{ textAlign: 'center' }}>
@@ -326,10 +326,9 @@ const StockPage = () => {
               <tfoot>
                 <tr className="total-row">
                   <td><strong>সর্বমোট</strong></td>
-                  <td className="amount"><strong>{tk(totalAmount)}</strong></td>
-                  <td style={{ color: '#b45309', fontWeight: 700 }}>
-                    {totalCashPaid > 0 ? tk(totalCashPaid) : '—'}
-                  </td>
+                  <td style={{ color: 'var(--stone-800)', fontWeight: 700 }}><strong>{tk(totalOwnAmount)}</strong></td>
+                  <td style={{ color: '#b45309', fontWeight: 700 }}><strong>{tk(totalCashPaid)}</strong></td>
+                  <td className="amount" style={{ fontWeight: 800, color: 'var(--primary)' }}><strong>{tk(totalAmount)}</strong></td>
                   <td colSpan="2"></td>
                 </tr>
               </tfoot>

@@ -4,22 +4,28 @@ const Stock = require('../models/Stock');
 // @route POST /api/stock
 const addStock = async (req, res) => {
   try {
-    const { amount, cashPaid, date, description } = req.body;
+    const { amount, cashPaid, ownAmount, date, description } = req.body;
 
-    const numAmount = Number(amount) || 0;
+    const numOwn = Math.max(0, Number(ownAmount) || 0);
     const numCash = (cashPaid !== undefined && cashPaid !== null && cashPaid !== '' && !isNaN(cashPaid)) 
       ? Math.max(0, Number(cashPaid)) 
       : 0;
 
-    if (numAmount <= 0 && numCash <= 0) {
-      return res.status(400).json({ message: 'মালের টাকা অথবা ক্যাশ থেকে নেওয়া টাকার যেকোনো একটি পরিমাণ দিন।' });
+    let totalStock = numOwn + numCash;
+    if (totalStock === 0 && Number(amount) > 0) {
+      totalStock = Number(amount);
     }
 
-    const finalAmount = numAmount > 0 ? numAmount : numCash;
+    if (totalStock <= 0) {
+      return res.status(400).json({ message: 'নিজের টাকা অথবা জমানো টাকার যেকোনো একটি পরিমাণ দিন।' });
+    }
+
+    const calculatedOwn = numOwn > 0 ? numOwn : Math.max(0, totalStock - numCash);
 
     const stock = await Stock.create({
       manager: req.user.id,
-      amount: finalAmount,
+      amount: totalStock,
+      ownAmount: calculatedOwn,
       cashPaid: numCash,
       date: date || new Date(),
       description
@@ -45,8 +51,9 @@ const getStock = async (req, res) => {
 
     const totalAmount = stocks.reduce((sum, s) => sum + s.amount, 0);
     const totalCashPaid = stocks.reduce((sum, s) => sum + (Number(s.cashPaid) || 0), 0);
+    const totalOwnAmount = stocks.reduce((sum, s) => sum + (s.ownAmount !== undefined ? Number(s.ownAmount) : Math.max(0, s.amount - (Number(s.cashPaid) || 0))), 0);
 
-    res.json({ stocks, totalAmount, totalCashPaid });
+    res.json({ stocks, totalAmount, totalCashPaid, totalOwnAmount });
   } catch (error) {
     res.status(500).json({ message: 'সার্ভার এরর', error: error.message });
   }

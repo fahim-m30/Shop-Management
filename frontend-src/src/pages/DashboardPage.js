@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { getDashboard } from '../api/api';
 import { useAuth } from '../context/AuthContext';
+import { subscribeToSync } from '../utils/sync';
 
 const MONTHS = [
   'জানুয়ারি', 'ফেব্রুয়ারি', 'মার্চ', 'এপ্রিল',
@@ -37,29 +38,14 @@ const DashboardPage = () => {
     } finally {
       setLoading(false);
     }
-  }, [selectedMonth, selectedYear, data]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedMonth, selectedYear]);
 
   // Real-time synchronization
   useEffect(() => {
-    fetchDashboard();
-
-    // Triggered whenever stock or sales are added, edited, or deleted anywhere
-    const handleSync = () => fetchDashboard(true);
-    window.addEventListener('shop-sync', handleSync);
-    window.addEventListener('focus', handleSync);
-
-    // Silent background live polling every 5 seconds when tab is open
-    const interval = setInterval(() => {
-      if (document.visibilityState === 'visible') {
-        fetchDashboard(true);
-      }
-    }, 5000);
-
-    return () => {
-      window.removeEventListener('shop-sync', handleSync);
-      window.removeEventListener('focus', handleSync);
-      clearInterval(interval);
-    };
+    fetchDashboard(true);
+    const unsubscribe = subscribeToSync(() => fetchDashboard(true), 3000);
+    return () => unsubscribe();
   }, [fetchDashboard]);
 
   const tk = (amount) => `৳${Number(amount || 0).toLocaleString('bn-BD', { minimumFractionDigits: 2 })}`;
@@ -212,7 +198,7 @@ const DashboardPage = () => {
                     {activeTab === 'today' ? 'আজকের' : 'শেষ দিনের'} অবশিষ্ট ক্যাশ (Cash in Hand): {tk(currentCash)}
                   </div>
                   <div style={{ fontSize: '12px', color: '#047857', marginTop: '3px' }}>
-                    হিসাব: মোট বিক্রয় (<strong>{tk(currentSales)}</strong>) − ক্যাশ থেকে মাল কেনা (<strong>{tk(activeTab === 'today' ? (data?.today?.totalCashStock || 0) : (data?.lastDay?.totalCashStock || 0))}</strong>)
+                    হিসাব: মোট বিক্রয় (<strong>{tk(currentSales)}</strong>) − জমানো টাকা থেকে মাল কেনা (<strong>{tk(activeTab === 'today' ? (data?.today?.totalCashStock || 0) : (data?.lastDay?.totalCashStock || 0))}</strong>)
                   </div>
                 </div>
               </div>
@@ -229,6 +215,11 @@ const DashboardPage = () => {
               <div className="stat-info">
                 <p style={{ margin: 0, fontSize: '12px' }}>মাল ঢুকেছে</p>
                 <h3 style={{ fontSize: '20px', marginTop: '2px' }}>{tk(currentStock)}</h3>
+                {isDaily && (
+                  <div style={{ fontSize: '11px', color: 'var(--stone-600)', marginTop: '2px' }}>
+                    💵 জমানো: {tk(activeTab === 'today' ? (data?.today?.totalCashStock || 0) : (data?.lastDay?.totalCashStock || 0))} | 👤 নিজের: {tk(activeTab === 'today' ? (data?.today?.totalOwnStock || 0) : (data?.lastDay?.totalOwnStock || 0))}
+                  </div>
+                )}
               </div>
             </div>
 
