@@ -33,7 +33,13 @@ const StockPage = () => {
       const res = await getStock({ month: filterMonth, year: filterYear });
       const stockList = res.data.stocks || [];
       setStocks(stockList);
-      setTotalAmount(res.data.totalAmount || stockList.reduce((sum, s) => sum + (Number(s.amount) || 0), 0));
+      
+      // Calculate total actual mal (filter out pure cash drawer payments)
+      const malSum = stockList
+        .filter(s => !(s.cashPaid > 0 && s.amount === s.cashPaid && (!s.description || s.description.includes('ক্যাশ'))))
+        .reduce((sum, s) => sum + (Number(s.amount) || 0), 0);
+      setTotalAmount(malSum);
+
       // Calculate total cash paid directly from the loaded stock records
       const cashSum = stockList.reduce((sum, s) => sum + (Number(s.cashPaid) || 0), 0);
       setTotalCashPaid(cashSum);
@@ -63,8 +69,10 @@ const StockPage = () => {
     setError('');
     setMsg('');
 
-    const finalAmount = numAmount;
+    // If mal amount is not entered, send numCash so backend accepts it (>0)
+    const finalAmount = numAmount > 0 ? numAmount : numCash;
     const finalCash = numCash;
+    const isPureCash = (numAmount <= 0 && numCash > 0);
 
     // --- Instant 0ms Optimistic UI Update ---
     const tempId = 'temp_' + Date.now();
@@ -73,19 +81,21 @@ const StockPage = () => {
       date: form.date,
       amount: finalAmount,
       cashPaid: finalCash,
-      description: form.description
+      description: form.description || (isPureCash ? 'ক্যাশ থেকে মাল বাবদ' : '')
     };
 
     setStocks(prev => [optimisticItem, ...prev]);
-    setTotalAmount(prev => prev + finalAmount);
+    if (!isPureCash) {
+      setTotalAmount(prev => prev + finalAmount);
+    }
     setTotalCashPaid(prev => prev + finalCash);
-    setMsg('✅ মাল ঢোকার তথ্য সেভ হয়েছে!');
+    setMsg(isPureCash ? '✅ ক্যাশ থেকে দেওয়া টাকা সেভ হয়েছে!' : '✅ মাল ঢোকার তথ্য সেভ হয়েছে!');
 
     const submittedData = {
       amount: finalAmount,
       cashPaid: finalCash,
       date: form.date,
-      description: form.description
+      description: form.description || (isPureCash ? 'ক্যাশ থেকে মাল বাবদ' : '')
     };
 
     setForm({ 
@@ -104,7 +114,9 @@ const StockPage = () => {
       setTimeout(() => setMsg(''), 3000);
     } catch (err) {
       setStocks(prev => prev.filter(item => item._id !== tempId));
-      setTotalAmount(prev => prev - finalAmount);
+      if (!isPureCash) {
+        setTotalAmount(prev => prev - finalAmount);
+      }
       setTotalCashPaid(prev => prev - finalCash);
       setError(err.response?.data?.message || 'সেভ করতে সমস্যা হয়েছে। আবার চেষ্টা করুন।');
     } finally {

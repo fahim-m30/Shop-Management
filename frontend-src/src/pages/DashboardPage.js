@@ -45,6 +45,11 @@ const DashboardPage = () => {
         .filter(s => s.date && s.date.startsWith(activeDateStr))
         .reduce((sum, s) => sum + (Number(s.cashPaid) || 0), 0);
 
+      // Actual mal entered today (excluding pure cash drawer payments)
+      const todayMalEntered = stockList
+        .filter(s => s.date && s.date.startsWith(activeDateStr) && !(s.cashPaid > 0 && s.amount === s.cashPaid && (!s.description || s.description.includes('ক্যাশ'))))
+        .reduce((sum, s) => sum + (Number(s.amount) || 0), 0);
+
       const lastDateStr = dData?.lastDay?.date ? dData.lastDay.date.split('T')[0] : '';
       const lastDayCashSpent = lastDateStr
         ? stockList.filter(s => s.date && s.date.startsWith(lastDateStr)).reduce((sum, s) => sum + (Number(s.cashPaid) || 0), 0)
@@ -52,6 +57,7 @@ const DashboardPage = () => {
 
       // Mathematically guaranteed remaining cash: Sales - Cash given for Stock
       if (dData.today) {
+        if (todayMalEntered > 0) dData.today.totalStock = todayMalEntered;
         dData.today.totalCashStock = todayCashSpent;
         dData.today.remainingCash = Math.max(0, (Number(dData.today.totalSales) || 0) - todayCashSpent);
       }
