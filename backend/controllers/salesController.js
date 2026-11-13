@@ -1,4 +1,5 @@
 const Sales = require('../models/Sales');
+const { notifyManagerChange } = require('../utils/realtime');
 
 // @desc  Add daily sales entry
 // @route POST /api/sales
@@ -16,6 +17,9 @@ const addSales = async (req, res) => {
       date: date || new Date(),
       description
     });
+
+    // Sub-second real-time broadcast (< 100ms)
+    notifyManagerChange(req.user.id, 'sale_added', { id: sale._id });
 
     res.status(201).json({
       message: 'বিক্রয়ের তথ্য সেভ হয়েছে!',
@@ -60,6 +64,7 @@ const deleteSales = async (req, res) => {
     if (!sale) return res.status(404).json({ message: 'এন্ট্রি পাওয়া যায়নি।' });
 
     await sale.deleteOne();
+    notifyManagerChange(req.user.id, 'sale_deleted', { id: req.params.id });
     res.json({ message: 'এন্ট্রি মুছে ফেলা হয়েছে।' });
   } catch (error) {
     res.status(500).json({ message: 'সার্ভার এরর', error: error.message });

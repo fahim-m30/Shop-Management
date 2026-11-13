@@ -33,6 +33,7 @@ app.use('/api/auth', require('./routes/authRoutes'));
 app.use('/api/stock', require('./routes/stockRoutes'));
 app.use('/api/sales', require('./routes/salesRoutes'));
 app.use('/api/dashboard', require('./routes/dashboardRoutes'));
+app.use('/api/realtime', require('./routes/realtimeRoutes'));
 
 // MongoDB Connection
 mongoose.connect(process.env.MONGO_URI)

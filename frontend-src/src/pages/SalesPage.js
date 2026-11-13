@@ -38,7 +38,7 @@ const SalesPage = () => {
   // Real-time synchronization
   useEffect(() => {
     fetchSales();
-    const unsubscribe = subscribeToSync(fetchSales, 3000);
+    const unsubscribe = subscribeToSync(fetchSales, 800);
     return () => unsubscribe();
   }, [fetchSales]);
 

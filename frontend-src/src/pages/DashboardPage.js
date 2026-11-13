@@ -44,7 +44,7 @@ const DashboardPage = () => {
   // Real-time synchronization
   useEffect(() => {
     fetchDashboard(true);
-    const unsubscribe = subscribeToSync(() => fetchDashboard(true), 3000);
+    const unsubscribe = subscribeToSync(() => fetchDashboard(true), 800);
     return () => unsubscribe();
   }, [fetchDashboard]);
 

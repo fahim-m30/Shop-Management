@@ -44,7 +44,7 @@ const StockPage = () => {
   // Real-time synchronization across tabs and silent 3s background polling
   useEffect(() => {
     fetchStocks();
-    const unsubscribe = subscribeToSync(fetchStocks, 3000);
+    const unsubscribe = subscribeToSync(fetchStocks, 800);
     return () => unsubscribe();
   }, [fetchStocks]);
 
