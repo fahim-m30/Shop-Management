@@ -1,24 +1,38 @@
 const Sales = require('../models/Sales');
 const Stock = require('../models/Stock');
 
-// Helper to get today's start and end timestamps in Bangladesh Time (UTC+6)
+// Helper to get today's business date range for retail shops in Bangladesh (Asia/Dhaka)
+// In Bangladesh shops, closing happens late night (12 AM - 5 AM).
+// Transactions entered between 00:00 and 04:59 belong to the active business day that just ended.
+// From 05:00 AM onwards, the new business calendar day begins.
 const getBangladeshTodayRange = () => {
   const now = new Date();
   const dhakaFormatter = new Intl.DateTimeFormat('en-US', {
     timeZone: 'Asia/Dhaka',
     year: 'numeric',
     month: 'numeric',
-    day: 'numeric'
+    day: 'numeric',
+    hour: 'numeric',
+    hour12: false
   });
   const parts = dhakaFormatter.formatToParts(now);
-  const y = parseInt(parts.find(p => p.type === 'year').value);
-  const m = parseInt(parts.find(p => p.type === 'month').value) - 1;
-  const d = parseInt(parts.find(p => p.type === 'day').value);
+  let y = parseInt(parts.find(p => p.type === 'year').value);
+  let m = parseInt(parts.find(p => p.type === 'month').value) - 1;
+  let d = parseInt(parts.find(p => p.type === 'day').value);
+  const hour = parseInt(parts.find(p => p.type === 'hour').value);
 
-  // Midnight Dhaka in UTC (UTC+6 -> subtract 6 hours)
-  const start = new Date(Date.UTC(y, m, d, -6, 0, 0, 0));
-  // End of day Dhaka in UTC
-  const end = new Date(Date.UTC(y, m, d, 17, 59, 59, 999));
+  // Late night retail business logic: 00:00 - 04:59 belongs to previous calendar day
+  if (hour < 5) {
+    const prev = new Date(Date.UTC(y, m, d - 1));
+    y = prev.getUTCFullYear();
+    m = prev.getUTCMonth();
+    d = prev.getUTCDate();
+  }
+
+  // HTML <input type="date"> saves as UTC midnight (YYYY-MM-DDT00:00:00.000Z).
+  // So start and end match from 00:00:00 to 23:59:59 UTC on that business date.
+  const start = new Date(Date.UTC(y, m, d, 0, 0, 0, 0));
+  const end = new Date(Date.UTC(y, m, d, 23, 59, 59, 999));
 
   return { start, end };
 };

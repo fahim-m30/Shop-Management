@@ -74,9 +74,13 @@ const setupSSE = () => {
   }
 };
 
-// Helper to get local date string YYYY-MM-DD (Bangladesh Time safe)
+// Helper to get local date string YYYY-MM-DD (Bangladesh retail business day safe)
 export const getLocalDateString = (dateObj = new Date()) => {
   const d = new Date(dateObj);
+  // Late night retail business logic: 00:00 - 04:59 belongs to previous business day
+  if (d.getHours() < 5) {
+    d.setDate(d.getDate() - 1);
+  }
   const year = d.getFullYear();
   const month = String(d.getMonth() + 1).padStart(2, '0');
   const day = String(d.getDate()).padStart(2, '0');
