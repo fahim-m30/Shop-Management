@@ -13,7 +13,7 @@ const stockSchema = new mongoose.Schema({
   },
   amount: {
     type: Number,
-    required: true,
+    default: 0,
     min: 0
   },
   // Cash paid from counter drawer for this stock (optional, defaults to 0)

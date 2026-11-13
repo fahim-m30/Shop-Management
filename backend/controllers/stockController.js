@@ -6,19 +6,21 @@ const addStock = async (req, res) => {
   try {
     const { amount, cashPaid, date, description } = req.body;
 
-    if (!amount || amount <= 0) {
-      return res.status(400).json({ message: 'সঠিক পরিমাণ দিন।' });
-    }
-
-    // Cash paid is completely optional: if omitted, blank, or NaN, default to 0
-    const finalCashPaid = (cashPaid !== undefined && cashPaid !== null && cashPaid !== '' && !isNaN(cashPaid)) 
+    const numAmount = Number(amount) || 0;
+    const numCash = (cashPaid !== undefined && cashPaid !== null && cashPaid !== '' && !isNaN(cashPaid)) 
       ? Math.max(0, Number(cashPaid)) 
       : 0;
 
+    if (numAmount <= 0 && numCash <= 0) {
+      return res.status(400).json({ message: 'মালের টাকা অথবা ক্যাশ থেকে নেওয়া টাকার যেকোনো একটি পরিমাণ দিন।' });
+    }
+
+    const finalAmount = numAmount > 0 ? numAmount : numCash;
+
     const stock = await Stock.create({
       manager: req.user.id,
-      amount: Number(amount),
-      cashPaid: finalCashPaid,
+      amount: finalAmount,
+      cashPaid: numCash,
       date: date || new Date(),
       description
     });

@@ -61,21 +61,24 @@ const StockPage = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!form.amount || form.amount <= 0) {
-      setError('সঠিক পরিমাণ দিন।');
+    const numAmount = Number(form.amount) || 0;
+    const numCash = Number(form.cashPaid) || 0;
+
+    if (numAmount <= 0 && numCash <= 0) {
+      setError('মালের টাকা অথবা ক্যাশ থেকে নেওয়া টাকার যেকোনো একটি পরিমাণ লিখুন।');
       return;
     }
+
     setLoading(true);
     setError('');
     setMsg('');
     try {
-      // Completely optional: if empty/blank, defaults to 0
-      const finalCash = (form.cashPaid !== '' && form.cashPaid !== null && !isNaN(form.cashPaid)) 
-        ? Number(form.cashPaid) 
-        : 0;
+      // If amount is left blank but cash is given, mal total is at least that cash amount
+      const finalAmount = numAmount > 0 ? numAmount : numCash;
+      const finalCash = numCash;
 
       await addStock({ 
-        amount: Number(form.amount), 
+        amount: finalAmount, 
         cashPaid: finalCash,
         date: form.date, 
         description: form.description 
@@ -165,22 +168,25 @@ const StockPage = () => {
           <form onSubmit={handleSubmit}>
             {/* Stock Total Amount */}
             <div className="form-group" style={{ marginBottom: '12px' }}>
-              <label style={{ fontSize: '12px' }}>মালের মোট পরিমাণ (টাকা) *</label>
+              <label style={{ fontSize: '12px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <span>মালের মোট পরিমাণ (টাকা)</span>
+                <span style={{ color: 'var(--stone-400)', fontWeight: 400, fontSize: '11px' }}>ঐচ্ছিক</span>
+              </label>
               <input
                 type="number"
-                placeholder="যেমন: 5000"
+                placeholder="যেমন: 5000 (খালি রাখলে ক্যাশ টাকা বসবে)"
                 value={form.amount}
                 onChange={e => setForm({ ...form, amount: e.target.value })}
-                min="1"
-                required
+                min="0"
                 style={{ padding: '10px 14px' }}
               />
             </div>
 
             {/* 1-Click Fast Options: "নিজে থেকে" vs "ক্যাশ থেকে" */}
             <div className="form-group" style={{ marginBottom: '14px' }}>
-              <label style={{ fontSize: '12px', display: 'block', marginBottom: '6px' }}>
-                টাকা কোথা থেকে দেওয়া হয়েছে? <span style={{ color: 'var(--stone-500)', fontWeight: 400 }}>(ঐচ্ছিক)</span>
+              <label style={{ fontSize: '12px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+                <span>ক্যাশ বাক্স থেকে দেওয়া টাকা</span>
+                <span style={{ color: 'var(--stone-400)', fontWeight: 400, fontSize: '11px' }}>ঐচ্ছিক</span>
               </label>
 
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginBottom: '8px' }}>
@@ -209,8 +215,11 @@ const StockPage = () => {
                 {/* Option 2: সম্পূর্ণ টাকা ক্যাশ থেকে */}
                 <button
                   type="button"
-                  onClick={() => setForm({ ...form, cashPaid: form.amount || '' })}
-                  disabled={!form.amount || Number(form.amount) <= 0}
+                  onClick={() => {
+                    if (form.amount && Number(form.amount) > 0) {
+                      setForm({ ...form, cashPaid: form.amount });
+                    }
+                  }}
                   style={{
                     padding: '8px 10px',
                     fontSize: '12px',
@@ -219,8 +228,7 @@ const StockPage = () => {
                     border: form.cashPaid !== '' && Number(form.cashPaid) === Number(form.amount) && Number(form.amount) > 0 ? '1.5px solid var(--emerald)' : '1px solid var(--stone-200)',
                     background: form.cashPaid !== '' && Number(form.cashPaid) === Number(form.amount) && Number(form.amount) > 0 ? 'var(--emerald-light)' : 'var(--stone-50)',
                     color: form.cashPaid !== '' && Number(form.cashPaid) === Number(form.amount) && Number(form.amount) > 0 ? 'var(--emerald)' : 'var(--stone-600)',
-                    cursor: (!form.amount || Number(form.amount) <= 0) ? 'not-allowed' : 'pointer',
-                    opacity: (!form.amount || Number(form.amount) <= 0) ? 0.6 : 1,
+                    cursor: 'pointer',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
@@ -234,14 +242,14 @@ const StockPage = () => {
               {/* Custom Cash Input */}
               <input
                 type="number"
-                placeholder="বা নির্দিষ্ট ক্যাশের টাকা লিখুন (যেমন: ২০০০)"
+                placeholder="বা ক্যাশের পরিমাণ লিখুন (যেমন: 1205)"
                 value={form.cashPaid}
                 onChange={e => setForm({ ...form, cashPaid: e.target.value })}
                 min="0"
                 style={{ padding: '10px 14px' }}
               />
               <span style={{ fontSize: '11px', color: 'var(--stone-500)', marginTop: '4px', display: 'block', lineHeight: '1.4' }}>
-                💡 <strong>নিজে থেকে</strong> হলে ক্যাশ ০ থাকবে। <strong>ক্যাশ থেকে</strong> টাকা নিলে 'সম্পূর্ণ ক্যাশ' চাপুন বা নির্দিষ্ট পরিমাণ লিখুন।
+                💡 যেকোনো একটি বা দুটিই একসাথে দিতে পারেন: শুধু ক্যাশ দিলে ক্যাশ থেকে কাটা হবে, শুধু মালের টাকা দিলে নিজে থেকে হিসাব হবে।
               </span>
             </div>
 
