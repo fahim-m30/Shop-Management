@@ -626,6 +626,29 @@ body {
   color: #92400e;
 }
 
+.stat-cash {
+  border-color: #6ee7b7;
+  background: linear-gradient(180deg, var(--white) 0%, #ecfdf5 100%);
+  box-shadow: 0 4px 14px rgba(16, 185, 129, 0.12);
+}
+.stat-cash .stat-icon {
+  background: #d1fae5;
+  color: #059669;
+}
+
+.cash-box {
+  background: linear-gradient(135deg, #f0fdf4 0%, #ecfdf5 100%);
+  border: 1.5px solid #a7f3d0;
+  border-radius: var(--radius-md);
+  padding: 12px 18px;
+  margin-bottom: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
 .stat-icon {
   width: 52px;
   height: 52px;

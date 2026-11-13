@@ -4,20 +4,25 @@ const Stock = require('../models/Stock');
 // @route POST /api/stock
 const addStock = async (req, res) => {
   try {
-    const { amount, date, description } = req.body;
+    const { amount, cashPaid, date, description } = req.body;
 
     if (!amount || amount <= 0) {
       return res.status(400).json({ message: 'সঠিক পরিমাণ দিন।' });
     }
 
+    const finalCashPaid = (cashPaid !== undefined && cashPaid !== null && cashPaid !== '') 
+      ? Math.max(0, Number(cashPaid)) 
+      : Number(amount);
+
     const stock = await Stock.create({
       manager: req.user.id,
-      amount,
+      amount: Number(amount),
+      cashPaid: finalCashPaid,
       date: date || new Date(),
       description
     });
 
-    res.status(201).json({ message: 'মাল ঢোকার তথ্য সেভ হয়েছে!', stock });
+    res.status(201).json({ message: 'মাল ঢোকার তথ্য সফলভাবে সেভ হয়েছে!', stock });
   } catch (error) {
     res.status(500).json({ message: 'সার্ভার এরর', error: error.message });
   }
@@ -36,8 +41,9 @@ const getStock = async (req, res) => {
     const stocks = await Stock.find(filter).sort({ date: -1 });
 
     const totalAmount = stocks.reduce((sum, s) => sum + s.amount, 0);
+    const totalCashPaid = stocks.reduce((sum, s) => sum + (s.cashPaid !== undefined ? s.cashPaid : s.amount), 0);
 
-    res.json({ stocks, totalAmount });
+    res.json({ stocks, totalAmount, totalCashPaid });
   } catch (error) {
     res.status(500).json({ message: 'সার্ভার এরর', error: error.message });
   }

@@ -45,8 +45,12 @@ const getDashboard = async (req, res) => {
     const totalTodaySales = todaySales.reduce((sum, s) => sum + s.amount, 0);
     const totalTodayIncome = todaySales.reduce((sum, s) => sum + s.income, 0);
     const totalTodayStock = todayStock.reduce((sum, s) => sum + s.amount, 0);
+    // Cash given from drawer for stock purchases today
+    const totalTodayCashStock = todayStock.reduce((sum, s) => sum + (s.cashPaid !== undefined ? s.cashPaid : s.amount), 0);
+    // Daily Cash in Hand = Today's Sales - Today's Cash spent on Stock
+    const todayRemainingCash = totalTodaySales - totalTodayCashStock;
 
-    // --- Last Active Day Stats (সর্বশেষ যে তারিখে লেনদেন হয়েছিল) ---
+    // --- Last Active Day Stats (সর্বশেষ যে তারিখে লেনদেন হয়েছিল) ---
     const latestSale = await Sales.findOne({ manager: managerId }).sort({ date: -1 });
     const latestStock = await Stock.findOne({ manager: managerId }).sort({ date: -1 });
 
@@ -77,11 +81,17 @@ const getDashboard = async (req, res) => {
         date: { $gte: lStart, $lte: lEnd }
       });
 
+      const lSalesTotal = lSales.reduce((sum, s) => sum + s.amount, 0);
+      const lStockTotal = lStock.reduce((sum, s) => sum + s.amount, 0);
+      const lCashStock = lStock.reduce((sum, s) => sum + (s.cashPaid !== undefined ? s.cashPaid : s.amount), 0);
+
       lastDayStats = {
         date: lastActiveDate,
-        totalSales: parseFloat(lSales.reduce((sum, s) => sum + s.amount, 0).toFixed(2)),
+        totalSales: parseFloat(lSalesTotal.toFixed(2)),
         totalIncome: parseFloat(lSales.reduce((sum, s) => sum + s.income, 0).toFixed(2)),
-        totalStock: parseFloat(lStock.reduce((sum, s) => sum + s.amount, 0).toFixed(2))
+        totalStock: parseFloat(lStockTotal.toFixed(2)),
+        totalCashStock: parseFloat(lCashStock.toFixed(2)),
+        remainingCash: parseFloat((lSalesTotal - lCashStock).toFixed(2))
       };
     }
 
@@ -111,7 +121,9 @@ const getDashboard = async (req, res) => {
       today: {
         totalSales: parseFloat(totalTodaySales.toFixed(2)),
         totalIncome: parseFloat(totalTodayIncome.toFixed(2)),
-        totalStock: parseFloat(totalTodayStock.toFixed(2))
+        totalStock: parseFloat(totalTodayStock.toFixed(2)),
+        totalCashStock: parseFloat(totalTodayCashStock.toFixed(2)),
+        remainingCash: parseFloat(todayRemainingCash.toFixed(2))
       },
       lastDay: lastDayStats,
       monthly: {

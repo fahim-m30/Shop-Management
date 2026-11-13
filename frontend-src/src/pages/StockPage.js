@@ -8,9 +8,15 @@ const MONTHS = [
 ];
 
 const StockPage = () => {
-  const [form, setForm] = useState({ amount: '', date: new Date().toISOString().split('T')[0], description: '' });
+  const [form, setForm] = useState({ 
+    amount: '', 
+    cashPaid: '', 
+    date: new Date().toISOString().split('T')[0], 
+    description: '' 
+  });
   const [stocks, setStocks] = useState([]);
   const [totalAmount, setTotalAmount] = useState(0);
+  const [totalCashPaid, setTotalCashPaid] = useState(0);
   const [loading, setLoading] = useState(false);
   const [msg, setMsg] = useState('');
   const [error, setError] = useState('');
@@ -26,6 +32,7 @@ const StockPage = () => {
       const res = await getStock({ month: filterMonth, year: filterYear });
       setStocks(res.data.stocks);
       setTotalAmount(res.data.totalAmount);
+      setTotalCashPaid(res.data.totalCashPaid || res.data.totalAmount || 0);
     } catch (err) {
       console.error(err);
     }
@@ -52,6 +59,16 @@ const StockPage = () => {
     };
   }, [fetchStocks]);
 
+  const handleAmountChange = (val) => {
+    // If cashPaid was previously equal to amount or empty, keep them in sync automatically
+    const isSynced = form.cashPaid === '' || form.cashPaid === form.amount;
+    setForm(prev => ({
+      ...prev,
+      amount: val,
+      cashPaid: isSynced ? val : prev.cashPaid
+    }));
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!form.amount || form.amount <= 0) {
@@ -62,9 +79,24 @@ const StockPage = () => {
     setError('');
     setMsg('');
     try {
-      await addStock({ amount: Number(form.amount), date: form.date, description: form.description });
-      setMsg('✅ মাল ঢোকা সেভ হয়েছে!');
-      setForm({ amount: '', date: new Date().toISOString().split('T')[0], description: '' });
+      const finalCash = (form.cashPaid !== '' && form.cashPaid !== null) 
+        ? Number(form.cashPaid) 
+        : Number(form.amount);
+
+      await addStock({ 
+        amount: Number(form.amount), 
+        cashPaid: finalCash,
+        date: form.date, 
+        description: form.description 
+      });
+
+      setMsg('✅ মাল ঢোকা ও ক্যাশ হিসাব সেভ হয়েছে!');
+      setForm({ 
+        amount: '', 
+        cashPaid: '', 
+        date: new Date().toISOString().split('T')[0], 
+        description: '' 
+      });
       fetchStocks();
       // Notify all other components in real-time
       window.dispatchEvent(new CustomEvent('shop-sync'));
@@ -98,12 +130,12 @@ const StockPage = () => {
             📦 মাল ঢোকার হিসাব
           </h2>
           <p style={{ fontSize: '13px', color: 'var(--stone-500)', margin: '2px 0 0' }}>
-            দোকানে নতুন মাল কেনার হিসাব এন্ট্রি করুন ও তালিকা দেখুন।
+            দোকানে নতুন মাল কেনার হিসাব ও ক্যাশ থেকে কত দেওয়া হয়েছে তা লিখুন।
           </p>
         </div>
 
         {/* Filter controls */}
-        <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+        <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
           <select 
             value={filterMonth} 
             onChange={e => setFilterMonth(Number(e.target.value))}
@@ -118,8 +150,11 @@ const StockPage = () => {
           >
             {years.map(y => <option key={y} value={y}>{y}</option>)}
           </select>
-          <div style={{ background: 'var(--primary-light)', color: 'var(--primary)', border: '1px solid var(--primary-border)', padding: '5px 12px', borderRadius: '12px', fontSize: '13px', fontWeight: 700 }}>
-            মোট: {tk(totalAmount)}
+          <div style={{ background: 'var(--primary-light)', color: 'var(--primary)', border: '1px solid var(--primary-border)', padding: '5px 10px', borderRadius: '12px', fontSize: '13px', fontWeight: 700 }}>
+            মোট মাল: {tk(totalAmount)}
+          </div>
+          <div style={{ background: '#fef3c7', color: '#b45309', border: '1px solid #fde68a', padding: '5px 10px', borderRadius: '12px', fontSize: '13px', fontWeight: 700 }}>
+            ক্যাশ পরিশোধ: {tk(totalCashPaid)}
           </div>
         </div>
       </div>
@@ -135,20 +170,38 @@ const StockPage = () => {
           {error && <div className="alert alert-error" style={{ padding: '8px 12px', fontSize: '13px' }}>⚠️ {error}</div>}
           
           <form onSubmit={handleSubmit}>
-            <div className="form-group" style={{ marginBottom: '12px' }}>
-              <label style={{ fontSize: '12px' }}>পরিমাণ (টাকা) *</label>
+            <div className="form-group" style={{ marginBottom: '10px' }}>
+              <label style={{ fontSize: '12px' }}>মালের মোট পরিমাণ (টাকা) *</label>
               <input
                 type="number"
                 placeholder="যেমন: 5000"
                 value={form.amount}
-                onChange={e => setForm({ ...form, amount: e.target.value })}
+                onChange={e => handleAmountChange(e.target.value)}
                 min="1"
                 required
                 style={{ padding: '10px 14px' }}
               />
             </div>
 
-            <div className="form-group" style={{ marginBottom: '12px' }}>
+            <div className="form-group" style={{ marginBottom: '10px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <label style={{ fontSize: '12px' }}>ক্যাশ বাক্স থেকে দেওয়া হয়েছে (টাকা) *</label>
+                <small style={{ color: 'var(--emerald)', fontSize: '11px', fontWeight: 600 }}>দৈনিক ক্যাশ থেকে বিয়োগ হবে</small>
+              </div>
+              <input
+                type="number"
+                placeholder="যেমন: 5000"
+                value={form.cashPaid}
+                onChange={e => setForm({ ...form, cashPaid: e.target.value })}
+                min="0"
+                style={{ padding: '10px 14px', background: '#f0fdf4', border: '1.5px solid #a7f3d0' }}
+              />
+              <span style={{ fontSize: '11px', color: 'var(--stone-500)', marginTop: '3px', display: 'block' }}>
+                💡 ক্যাশ থেকে না দিলে ০ লিখুন, পুরোটা দিলে স্বয়ংক্রিয়ভাবে মোট টাকার সমান থাকবে।
+              </span>
+            </div>
+
+            <div className="form-group" style={{ marginBottom: '10px' }}>
               <label style={{ fontSize: '12px' }}>তারিখ</label>
               <input
                 type="date"
@@ -184,7 +237,8 @@ const StockPage = () => {
               <thead>
                 <tr>
                   <th>তারিখ</th>
-                  <th>পরিমাণ</th>
+                  <th>মালের টাকা</th>
+                  <th>ক্যাশ থেকে পরিশোধ</th>
                   <th>বিবরণ</th>
                   <th style={{ textAlign: 'center' }}>অ্যাকশন</th>
                 </tr>
@@ -194,6 +248,9 @@ const StockPage = () => {
                   <tr key={s._id}>
                     <td>{new Date(s.date).toLocaleDateString('bn-BD')}</td>
                     <td className="amount">{tk(s.amount)}</td>
+                    <td className="amount" style={{ color: '#b45309' }}>
+                      {tk(s.cashPaid !== undefined ? s.cashPaid : s.amount)}
+                    </td>
                     <td>{s.description || '—'}</td>
                     <td style={{ textAlign: 'center' }}>
                       <button className="btn btn-danger-sm" onClick={() => handleDelete(s._id)} title="মুছুন">
@@ -207,6 +264,7 @@ const StockPage = () => {
                 <tr className="total-row">
                   <td><strong>সর্বমোট</strong></td>
                   <td className="amount"><strong>{tk(totalAmount)}</strong></td>
+                  <td className="amount" style={{ color: '#b45309' }}><strong>{tk(totalCashPaid)}</strong></td>
                   <td colSpan="2"></td>
                 </tr>
               </tfoot>

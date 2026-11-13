@@ -93,6 +93,8 @@ const DashboardPage = () => {
   let currentStock = data?.today?.totalStock || 0;
   let currentSales = data?.today?.totalSales || 0;
   let currentIncome = data?.today?.totalIncome || 0;
+  let currentCash = data?.today?.remainingCash || 0;
+  let isDaily = true;
 
   if (activeTab === 'lastDay' && data?.lastDay) {
     heroTitle = '⏱️ সর্বশেষ সক্রিয় দিনের হিসাব';
@@ -100,18 +102,22 @@ const DashboardPage = () => {
     currentStock = data.lastDay.totalStock || 0;
     currentSales = data.lastDay.totalSales || 0;
     currentIncome = data.lastDay.totalIncome || 0;
+    currentCash = data.lastDay.remainingCash || 0;
+    isDaily = true;
   } else if (activeTab === 'monthly') {
     heroTitle = `📅 ${MONTHS[selectedMonth - 1]} ${selectedYear} — মাসিক হিসাব`;
     heroSubtitle = 'নির্বাচিত মাসের হিসাব';
     currentStock = data?.monthly?.totalStock || 0;
     currentSales = data?.monthly?.totalSales || 0;
     currentIncome = data?.monthly?.totalIncome || 0;
+    isDaily = false;
   } else if (activeTab === 'allTime') {
     heroTitle = '🏆 সর্বমোট হিসাব (সব সময়)';
     heroSubtitle = 'দোকানের শুরু থেকে আজ পর্যন্ত';
     currentStock = data?.allTime?.totalStock || 0;
     currentSales = data?.allTime?.totalSales || 0;
     currentIncome = data?.allTime?.totalIncome || 0;
+    isDaily = false;
   }
 
   return (
@@ -186,7 +192,7 @@ const DashboardPage = () => {
 
       {activeTab !== 'compare' ? (
         <>
-          {/* Hero 3 Cards for currently active period */}
+          {/* Header row for active tab */}
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
             <span style={{ fontSize: '14px', fontWeight: 700, color: 'var(--stone-700)' }}>
               {heroTitle}
@@ -196,6 +202,27 @@ const DashboardPage = () => {
             </span>
           </div>
 
+          {/* Dedicated Daily Cash Drawer Box (শুধুমাত্র আজকের বা শেষ সক্রিয় দিনের জন্য) */}
+          {isDaily && (
+            <div className="cash-box">
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                <span style={{ fontSize: '28px' }}>💵</span>
+                <div>
+                  <div style={{ fontSize: '15px', fontWeight: 700, color: '#065f46' }}>
+                    {activeTab === 'today' ? 'আজকের' : 'শেষ দিনের'} অবশিষ্ট ক্যাশ (Cash in Hand): {tk(currentCash)}
+                  </div>
+                  <div style={{ fontSize: '12px', color: '#047857', marginTop: '3px' }}>
+                    হিসাব: মোট বিক্রয় (<strong>{tk(currentSales)}</strong>) − ক্যাশ থেকে মাল কেনা (<strong>{tk(activeTab === 'today' ? (data?.today?.totalCashStock || 0) : (data?.lastDay?.totalCashStock || 0))}</strong>)
+                  </div>
+                </div>
+              </div>
+              <div style={{ fontSize: '12px', background: '#d1fae5', color: '#065f46', padding: '5px 12px', borderRadius: '14px', fontWeight: 600, border: '1px solid #a7f3d0' }}>
+                ℹ️ শুধুমাত্র {activeTab === 'today' ? 'আজকের' : 'ঐ'} দিনের হিসাব (পরদিন নতুন শুরু)
+              </div>
+            </div>
+          )}
+
+          {/* Hero Cards Grid (4 cards for daily with Cash in Hand, 3 cards for monthly/all-time) */}
           <div className="stats-grid" style={{ marginBottom: '14px' }}>
             <div className="stat-card stat-blue" style={{ padding: '16px' }}>
               <div className="stat-icon" style={{ width: '44px', height: '44px', fontSize: '22px' }}>📦</div>
@@ -204,6 +231,7 @@ const DashboardPage = () => {
                 <h3 style={{ fontSize: '20px', marginTop: '2px' }}>{tk(currentStock)}</h3>
               </div>
             </div>
+
             <div className="stat-card stat-green" style={{ padding: '16px' }}>
               <div className="stat-icon" style={{ width: '44px', height: '44px', fontSize: '22px' }}>💰</div>
               <div className="stat-info">
@@ -211,6 +239,7 @@ const DashboardPage = () => {
                 <h3 style={{ fontSize: '20px', marginTop: '2px' }}>{tk(currentSales)}</h3>
               </div>
             </div>
+
             <div className="stat-card stat-orange" style={{ padding: '16px' }}>
               <div className="stat-icon" style={{ width: '44px', height: '44px', fontSize: '22px' }}>📈</div>
               <div className="stat-info">
@@ -218,6 +247,16 @@ const DashboardPage = () => {
                 <h3 style={{ fontSize: '20px', marginTop: '2px' }}>{tk(currentIncome)}</h3>
               </div>
             </div>
+
+            {isDaily && (
+              <div className="stat-card stat-cash" style={{ padding: '16px' }}>
+                <div className="stat-icon" style={{ width: '44px', height: '44px', fontSize: '22px' }}>💵</div>
+                <div className="stat-info">
+                  <p style={{ margin: 0, fontSize: '12px', color: '#065f46' }}>হাতে ক্যাশ (অবশিষ্ট)</p>
+                  <h3 style={{ fontSize: '20px', marginTop: '2px', color: '#047857' }}>{tk(currentCash)}</h3>
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Zero-Scroll Executive Summary: All Periods in 1 Compact Card */}
@@ -239,6 +278,7 @@ const DashboardPage = () => {
                     <th>📦 মাল ঢুকেছে</th>
                     <th>💰 বিক্রয়</th>
                     <th>📈 লাভ / আয় (১২%)</th>
+                    <th>💵 হাতে ক্যাশ</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -251,6 +291,7 @@ const DashboardPage = () => {
                     <td>{tk(data?.today?.totalStock)}</td>
                     <td>{tk(data?.today?.totalSales)}</td>
                     <td style={{ color: 'var(--emerald)', fontWeight: 700 }}>{tk(data?.today?.totalIncome)}</td>
+                    <td style={{ color: '#059669', fontWeight: 700 }}>{tk(data?.today?.remainingCash)}</td>
                   </tr>
 
                   {data?.lastDay && (
@@ -263,6 +304,7 @@ const DashboardPage = () => {
                       <td>{tk(data.lastDay.totalStock)}</td>
                       <td>{tk(data.lastDay.totalSales)}</td>
                       <td style={{ color: 'var(--emerald)', fontWeight: 700 }}>{tk(data.lastDay.totalIncome)}</td>
+                      <td style={{ color: '#059669', fontWeight: 700 }}>{tk(data.lastDay.remainingCash)}</td>
                     </tr>
                   )}
 
@@ -275,6 +317,7 @@ const DashboardPage = () => {
                     <td>{tk(data?.monthly?.totalStock)}</td>
                     <td>{tk(data?.monthly?.totalSales)}</td>
                     <td style={{ color: 'var(--emerald)', fontWeight: 700 }}>{tk(data?.monthly?.totalIncome)}</td>
+                    <td style={{ color: 'var(--stone-400)', fontSize: '12px' }}>— (শুধু দৈনিক)</td>
                   </tr>
 
                   <tr 
@@ -286,6 +329,7 @@ const DashboardPage = () => {
                     <td>{tk(data?.allTime?.totalStock)}</td>
                     <td>{tk(data?.allTime?.totalSales)}</td>
                     <td style={{ color: 'var(--emerald)', fontWeight: 700 }}>{tk(data?.allTime?.totalIncome)}</td>
+                    <td style={{ color: 'var(--stone-400)', fontSize: '12px' }}>— (শুধু দৈনিক)</td>
                   </tr>
                 </tbody>
               </table>
