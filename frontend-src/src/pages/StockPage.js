@@ -31,9 +31,12 @@ const StockPage = () => {
   const fetchStocks = useCallback(async () => {
     try {
       const res = await getStock({ month: filterMonth, year: filterYear });
-      setStocks(res.data.stocks || []);
-      setTotalAmount(res.data.totalAmount || 0);
-      setTotalCashPaid(res.data.totalCashPaid || 0);
+      const stockList = res.data.stocks || [];
+      setStocks(stockList);
+      setTotalAmount(res.data.totalAmount || stockList.reduce((sum, s) => sum + (Number(s.amount) || 0), 0));
+      // Calculate total cash paid directly from the loaded stock records
+      const cashSum = stockList.reduce((sum, s) => sum + (Number(s.cashPaid) || 0), 0);
+      setTotalCashPaid(cashSum);
     } catch (err) {
       console.error(err);
     }

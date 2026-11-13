@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { getDashboard } from '../api/api';
+import { getDashboard, getStock } from '../api/api';
 import { useAuth } from '../context/AuthContext';
-import { subscribeToSync } from '../utils/sync';
+import { subscribeToSync, getLocalDateString } from '../utils/sync';
 
 const MONTHS = [
   'জানুয়ারি', 'ফেব্রুয়ারি', 'মার্চ', 'এপ্রিল',
@@ -29,9 +29,39 @@ const DashboardPage = () => {
   const fetchDashboard = useCallback(async (isSilent = false) => {
     if (!data && !isSilent) setLoading(true);
     try {
-      const res = await getDashboard({ month: selectedMonth, year: selectedYear });
-      setData(res.data);
-      localStorage.setItem('shop_cached_dashboard', JSON.stringify(res.data));
+      const [dashRes, stockRes] = await Promise.all([
+        getDashboard({ month: selectedMonth, year: selectedYear }),
+        getStock({ month: selectedMonth, year: selectedYear }).catch(() => null)
+      ]);
+
+      const dData = dashRes.data || {};
+      const stockList = stockRes?.data?.stocks || [];
+
+      // Safe retail closing active date string
+      const activeDateStr = getLocalDateString();
+
+      // Find all stocks for today's active business date and sum cash paid
+      const todayCashSpent = stockList
+        .filter(s => s.date && s.date.startsWith(activeDateStr))
+        .reduce((sum, s) => sum + (Number(s.cashPaid) || 0), 0);
+
+      const lastDateStr = dData?.lastDay?.date ? dData.lastDay.date.split('T')[0] : '';
+      const lastDayCashSpent = lastDateStr
+        ? stockList.filter(s => s.date && s.date.startsWith(lastDateStr)).reduce((sum, s) => sum + (Number(s.cashPaid) || 0), 0)
+        : todayCashSpent;
+
+      // Mathematically guaranteed remaining cash: Sales - Cash given for Stock
+      if (dData.today) {
+        dData.today.totalCashStock = todayCashSpent;
+        dData.today.remainingCash = Math.max(0, (Number(dData.today.totalSales) || 0) - todayCashSpent);
+      }
+      if (dData.lastDay) {
+        dData.lastDay.totalCashStock = lastDayCashSpent;
+        dData.lastDay.remainingCash = Math.max(0, (Number(dData.lastDay.totalSales) || 0) - lastDayCashSpent);
+      }
+
+      setData(dData);
+      localStorage.setItem('shop_cached_dashboard', JSON.stringify(dData));
       setLastSyncTime(new Date());
     } catch (err) {
       console.error(err);
