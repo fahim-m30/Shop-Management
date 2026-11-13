@@ -5,31 +5,25 @@ const { notifyManagerChange } = require('../utils/realtime');
 // @route POST /api/stock
 const addStock = async (req, res) => {
   try {
-    const { amount, cashPaid, ownAmount, date, description } = req.body;
+    const { amount, cashPaid, date, description } = req.body;
 
-    const numOwn = Math.max(0, Number(ownAmount) || 0);
+    const numAmount = Number(amount) || 0;
     const numCash = (cashPaid !== undefined && cashPaid !== null && cashPaid !== '' && !isNaN(cashPaid)) 
       ? Math.max(0, Number(cashPaid)) 
       : 0;
 
-    let totalStock = numOwn + numCash;
-    if (totalStock === 0 && Number(amount) > 0) {
-      totalStock = Number(amount);
+    if (numAmount <= 0 && numCash <= 0) {
+      return res.status(400).json({ message: 'মালের টাকা অথবা ক্যাশ থেকে দেওয়া টাকার যেকোনো একটি পরিমাণ দিন।' });
     }
 
-    if (totalStock <= 0) {
-      return res.status(400).json({ message: 'নিজের টাকা অথবা জমানো টাকার যেকোনো একটি পরিমাণ দিন।' });
-    }
-
-    const calculatedOwn = numOwn > 0 ? numOwn : Math.max(0, totalStock - numCash);
+    const finalAmount = numAmount > 0 ? numAmount : numCash;
 
     const stock = await Stock.create({
       manager: req.user.id,
-      amount: totalStock,
-      ownAmount: calculatedOwn,
+      amount: finalAmount,
       cashPaid: numCash,
       date: date || new Date(),
-      description
+      description: description || ''
     });
 
     // Sub-second real-time broadcast to all connected devices (< 100ms)
@@ -55,9 +49,8 @@ const getStock = async (req, res) => {
 
     const totalAmount = stocks.reduce((sum, s) => sum + s.amount, 0);
     const totalCashPaid = stocks.reduce((sum, s) => sum + (Number(s.cashPaid) || 0), 0);
-    const totalOwnAmount = stocks.reduce((sum, s) => sum + (s.ownAmount !== undefined ? Number(s.ownAmount) : Math.max(0, s.amount - (Number(s.cashPaid) || 0))), 0);
 
-    res.json({ stocks, totalAmount, totalCashPaid, totalOwnAmount });
+    res.json({ stocks, totalAmount, totalCashPaid });
   } catch (error) {
     res.status(500).json({ message: 'সার্ভার এরর', error: error.message });
   }

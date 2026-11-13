@@ -215,9 +215,9 @@ const DashboardPage = () => {
               <div className="stat-info">
                 <p style={{ margin: 0, fontSize: '12px' }}>মাল ঢুকেছে</p>
                 <h3 style={{ fontSize: '20px', marginTop: '2px' }}>{tk(currentStock)}</h3>
-                {isDaily && (
-                  <div style={{ fontSize: '11px', color: 'var(--stone-600)', marginTop: '2px' }}>
-                    💵 জমানো: {tk(activeTab === 'today' ? (data?.today?.totalCashStock || 0) : (data?.lastDay?.totalCashStock || 0))} | 👤 নিজের: {tk(activeTab === 'today' ? (data?.today?.totalOwnStock || 0) : (data?.lastDay?.totalOwnStock || 0))}
+                {isDaily && (activeTab === 'today' ? (data?.today?.totalCashStock || 0) : (data?.lastDay?.totalCashStock || 0)) > 0 && (
+                  <div style={{ fontSize: '11px', color: '#b45309', marginTop: '2px', fontWeight: 600 }}>
+                    💵 ক্যাশ থেকে দেওয়া: {tk(activeTab === 'today' ? data?.today?.totalCashStock : data?.lastDay?.totalCashStock)}
                   </div>
                 )}
               </div>
