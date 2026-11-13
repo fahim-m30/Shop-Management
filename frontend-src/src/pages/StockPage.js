@@ -199,6 +199,7 @@ const StockPage = () => {
                 মালের মোট পরিমাণ (টাকা)
               </label>
               <input
+                id="stock-amount-input"
                 type="number"
                 placeholder="যেমন: 2605"
                 value={form.amount}
@@ -216,44 +217,72 @@ const StockPage = () => {
                 </label>
               </div>
 
-              {/* Quick Click Buttons */}
+              {/* Quick Click Option Buttons */}
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginBottom: '8px' }}>
                 <button
                   type="button"
                   onClick={() => {
                     if (form.amount && Number(form.amount) > 0) {
                       setForm({ ...form, cashPaid: form.amount });
+                    } else {
+                      document.getElementById('stock-amount-input')?.focus();
+                      setError('আগে মালের মোট পরিমাণ লিখুন, অথবা নিচে সরাসরি ক্যাশের টাকা লিখুন।');
                     }
                   }}
                   style={{
-                    padding: '7px 8px',
+                    padding: '8px 10px',
                     fontSize: '12px',
                     fontWeight: 600,
                     borderRadius: '8px',
-                    border: form.cashPaid !== '' && Number(form.cashPaid) === Number(form.amount) && Number(form.amount) > 0 ? '1.5px solid var(--emerald)' : '1px solid var(--stone-200)',
-                    background: form.cashPaid !== '' && Number(form.cashPaid) === Number(form.amount) && Number(form.amount) > 0 ? 'var(--emerald-light)' : 'var(--stone-50)',
-                    color: form.cashPaid !== '' && Number(form.cashPaid) === Number(form.amount) && Number(form.amount) > 0 ? 'var(--emerald)' : 'var(--stone-600)',
-                    cursor: 'pointer'
+                    border: (form.amount && form.cashPaid !== '' && Number(form.cashPaid) === Number(form.amount))
+                      ? '2px solid var(--emerald)'
+                      : '1.5px solid var(--stone-200)',
+                    background: (form.amount && form.cashPaid !== '' && Number(form.cashPaid) === Number(form.amount))
+                      ? '#d1fae5'
+                      : 'var(--stone-50)',
+                    color: (form.amount && form.cashPaid !== '' && Number(form.cashPaid) === Number(form.amount))
+                      ? '#065f46'
+                      : 'var(--stone-700)',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '4px',
+                    boxShadow: (form.amount && form.cashPaid !== '' && Number(form.cashPaid) === Number(form.amount)) ? '0 0 0 2px rgba(16, 185, 129, 0.2)' : 'none'
                   }}
                 >
-                  💵 সম্পূর্ণ ক্যাশ
+                  <span>💵 সম্পূর্ণ ক্যাশ</span>
+                  {form.amount && Number(form.amount) > 0 ? (
+                    <span style={{ fontSize: '11px', fontWeight: 700 }}>({tk(form.amount)})</span>
+                  ) : ''}
                 </button>
 
                 <button
                   type="button"
                   onClick={() => setForm({ ...form, cashPaid: '0' })}
                   style={{
-                    padding: '7px 8px',
+                    padding: '8px 10px',
                     fontSize: '12px',
                     fontWeight: 600,
                     borderRadius: '8px',
-                    border: form.cashPaid === '0' ? '1.5px solid var(--primary)' : '1px solid var(--stone-200)',
-                    background: form.cashPaid === '0' ? 'var(--primary-light)' : 'var(--stone-50)',
-                    color: form.cashPaid === '0' ? 'var(--primary)' : 'var(--stone-600)',
-                    cursor: 'pointer'
+                    border: form.cashPaid === '0'
+                      ? '2px solid var(--primary)'
+                      : '1.5px solid var(--stone-200)',
+                    background: form.cashPaid === '0'
+                      ? 'var(--primary-light)'
+                      : 'var(--stone-50)',
+                    color: form.cashPaid === '0'
+                      ? 'var(--primary)'
+                      : 'var(--stone-700)',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '4px',
+                    boxShadow: form.cashPaid === '0' ? '0 0 0 2px rgba(13, 148, 136, 0.2)' : 'none'
                   }}
                 >
-                  ❌ ক্যাশ দেইনি (০৳)
+                  <span>❌ ক্যাশ দেইনি (০৳)</span>
                 </button>
               </div>
 
