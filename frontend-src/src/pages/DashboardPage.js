@@ -228,7 +228,7 @@ const DashboardPage = () => {
                     {activeTab === 'today' ? 'আজকের' : 'শেষ দিনের'} অবশিষ্ট ক্যাশ (Cash in Hand): {tk(currentCash)}
                   </div>
                   <div style={{ fontSize: '12px', color: '#047857', marginTop: '3px' }}>
-                    হিসাব: মোট বিক্রয় (<strong>{tk(currentSales)}</strong>) − জমানো টাকা থেকে মাল কেনা (<strong>{tk(activeTab === 'today' ? (data?.today?.totalCashStock || 0) : (data?.lastDay?.totalCashStock || 0))}</strong>)
+                    হিসাব: মোট বিক্রয় (<strong>{tk(currentSales)}</strong>) − ক্যাশ বাক্স থেকে মাল কেনা (<strong>{tk(activeTab === 'today' ? (data?.today?.totalCashStock || 0) : (data?.lastDay?.totalCashStock || 0))}</strong>)
                   </div>
                 </div>
               </div>

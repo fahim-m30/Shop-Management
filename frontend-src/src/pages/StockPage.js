@@ -52,10 +52,15 @@ const StockPage = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     const numAmount = Number(form.amount) || 0;
-    const numCash = Number(form.cashPaid) || 0;
+    const numCash = Math.max(0, Number(form.cashPaid) || 0);
 
-    if (numAmount <= 0 && numCash <= 0) {
-      setError('মালের মোট টাকা অথবা ক্যাশ থেকে দেওয়া টাকার যেকোনো একটি পরিমাণ লিখুন।');
+    if (numAmount <= 0) {
+      setError('মালের মোট পরিমাণ (টাকা) লিখুন।');
+      return;
+    }
+
+    if (numCash > numAmount) {
+      setError('ক্যাশ থেকে দেওয়া টাকা মালের মোট দামের চেয়ে বেশি হতে পারে না।');
       return;
     }
 
@@ -63,8 +68,7 @@ const StockPage = () => {
     setError('');
     setMsg('');
 
-    // If total amount is not typed, assume total is at least the cash given
-    const finalAmount = numAmount > 0 ? numAmount : numCash;
+    const finalAmount = numAmount;
     const finalCash = numCash;
 
     // --- Instant 0ms Optimistic UI Update ---
@@ -255,7 +259,7 @@ const StockPage = () => {
                 style={{ padding: '10px 14px' }}
               />
               <span style={{ fontSize: '11px', color: 'var(--stone-500)', marginTop: '4px', display: 'block', lineHeight: '1.4' }}>
-                💡 মালের জন্য ক্যাশ বাক্স থেকে টাকা দিলে লিখবেন (আজকের বিক্রির ক্যাশ থেকে বিয়োগ হবে)। ক্যাশ থেকে না দিলে খালি বা ০ রাখুন।
+                💡 এই মালের জন্য ক্যাশ বাক্স থেকে কত টাকা দিয়েছেন? শুধু সেই টাকাটাই ক্যাশ থেকে বিয়োগ হবে (মাল ঢোকার হিসাব আলাদা বাড়বে না)। ক্যাশ থেকে না দিলে ০ রাখুন।
               </span>
             </div>
 
