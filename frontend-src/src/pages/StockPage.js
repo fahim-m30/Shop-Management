@@ -286,8 +286,38 @@ const StockPage = () => {
                 💡 আজকের দোকানের বিক্রয়ের ক্যাশ থেকে দিলে এখানে লিখুন। আগের টাকা/নিজের টাকা থেকে দিলে নিচের বাটনে ক্লিক করুন।
               </span>
 
-              {/* Quick Click Option Buttons */}
+              {/* Quick Click Option Buttons - 'নিজের টাকা' First by Default */}
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginBottom: '8px' }}>
+                {/* Option 1 (Default): নিজের টাকা */}
+                <button
+                  type="button"
+                  onClick={() => setForm({ ...form, cashPaid: '0' })}
+                  style={{
+                    padding: '8px 10px',
+                    fontSize: '12px',
+                    fontWeight: 700,
+                    borderRadius: '8px',
+                    border: (form.cashPaid === '0' || form.cashPaid === '')
+                      ? '2px solid var(--primary)'
+                      : '1.5px solid var(--stone-200)',
+                    background: (form.cashPaid === '0' || form.cashPaid === '')
+                      ? 'var(--primary-light)'
+                      : 'var(--stone-50)',
+                    color: (form.cashPaid === '0' || form.cashPaid === '')
+                      ? 'var(--primary)'
+                      : 'var(--stone-700)',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '4px',
+                    boxShadow: (form.cashPaid === '0' || form.cashPaid === '') ? '0 0 0 2px rgba(13, 148, 136, 0.2)' : 'none'
+                  }}
+                >
+                  <span>{(form.cashPaid === '0' || form.cashPaid === '') ? '✔️ ' : ''}👤 আগের/নিজের টাকা</span>
+                </button>
+
+                {/* Option 2 (Occasional): দোকানের ক্যাশ */}
                 <button
                   type="button"
                   onClick={() => {
@@ -302,64 +332,41 @@ const StockPage = () => {
                     fontSize: '12px',
                     fontWeight: 600,
                     borderRadius: '8px',
-                    border: (form.amount && form.cashPaid !== '' && Number(form.cashPaid) === Number(form.amount))
+                    border: (form.amount && form.cashPaid !== '' && Number(form.cashPaid) === Number(form.amount) && Number(form.cashPaid) > 0)
                       ? '2px solid var(--emerald)'
                       : '1.5px solid var(--stone-200)',
-                    background: (form.amount && form.cashPaid !== '' && Number(form.cashPaid) === Number(form.amount))
+                    background: (form.amount && form.cashPaid !== '' && Number(form.cashPaid) === Number(form.amount) && Number(form.cashPaid) > 0)
                       ? '#d1fae5'
                       : 'var(--stone-50)',
-                    color: (form.amount && form.cashPaid !== '' && Number(form.cashPaid) === Number(form.amount))
+                    color: (form.amount && form.cashPaid !== '' && Number(form.cashPaid) === Number(form.amount) && Number(form.cashPaid) > 0)
                       ? '#065f46'
                       : 'var(--stone-700)',
                     cursor: 'pointer',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    gap: '4px'
+                    gap: '4px',
+                    boxShadow: (form.amount && form.cashPaid !== '' && Number(form.cashPaid) === Number(form.amount) && Number(form.cashPaid) > 0) ? '0 0 0 2px rgba(16, 185, 129, 0.2)' : 'none'
                   }}
                 >
-                  <span>🏪 সম্পূর্ণ ক্যাশ থেকে</span>
-                  {form.amount && Number(form.amount) > 0 ? (
+                  <span>🏪 দোকানের ক্যাশ থেকে</span>
+                  {form.amount && Number(form.amount) > 0 && Number(form.cashPaid) === Number(form.amount) ? (
                     <span style={{ fontSize: '11px', fontWeight: 700 }}>({tk(form.amount)})</span>
                   ) : ''}
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => setForm({ ...form, cashPaid: '0' })}
-                  style={{
-                    padding: '8px 10px',
-                    fontSize: '12px',
-                    fontWeight: 600,
-                    borderRadius: '8px',
-                    border: form.cashPaid === '0'
-                      ? '2px solid var(--primary)'
-                      : '1.5px solid var(--stone-200)',
-                    background: form.cashPaid === '0'
-                      ? 'var(--primary-light)'
-                      : 'var(--stone-50)',
-                    color: form.cashPaid === '0'
-                      ? 'var(--primary)'
-                      : 'var(--stone-700)',
-                    cursor: 'pointer',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    gap: '4px'
-                  }}
-                >
-                  <span>👤 আগের/নিজের টাকা (০৳ ক্যাশ)</span>
                 </button>
               </div>
 
               <input
                 type="number"
-                placeholder="বা নির্দিষ্ট ক্যাশের টাকা লিখুন (যেমন: 1205)"
-                value={form.cashPaid}
+                placeholder="মাঝে মাঝে ক্যাশ থেকে দিলে পরিমাণ লিখুন (যেমন: 1205)"
+                value={form.cashPaid === '0' ? '' : form.cashPaid}
                 onChange={e => setForm({ ...form, cashPaid: e.target.value })}
                 min="0"
                 style={{ padding: '10px 14px' }}
               />
+              <span style={{ fontSize: '11px', color: 'var(--stone-500)', marginTop: '4px', display: 'block', lineHeight: '1.4' }}>
+                💡 সবসময় নিজের টাকা থেকে দিলে এই ঘর খালি রাখলেই চলবে। শুধুমাত্র মাঝে মাঝে দোকানের ক্যাশ বাক্স থেকে দিলে এখানে টাকা লিখুন।
+              </span>
 
               {/* Dynamic Live Breakdown Card */}
               {(numAmount > 0 || numCash > 0) && (
