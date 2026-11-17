@@ -35,7 +35,18 @@ const DashboardPage = () => {
       ]);
 
       const dData = dashRes.data || {};
-      const stockList = stockRes?.data?.stocks || [];
+      const rawStockList = stockRes?.data?.stocks || [];
+
+      // Parse cashPaid even if backend stripped the field
+      const stockList = rawStockList.map(s => {
+        const cashMatch = s.description?.match(/\[(?:ক্যাশ|cash):\s*৳?(\d+(?:\.\d+)?)\]/i);
+        const extractedCash = cashMatch ? Number(cashMatch[1]) : 0;
+        const cashPaid = (s.cashPaid !== undefined && s.cashPaid !== null && Number(s.cashPaid) > 0)
+          ? Number(s.cashPaid)
+          : extractedCash;
+        const total = Number(s.amount) || 0;
+        return { ...s, cashPaid, amount: total };
+      });
 
       // Safe retail closing active date string
       const activeDateStr = getLocalDateString();
@@ -45,9 +56,9 @@ const DashboardPage = () => {
         .filter(s => s.date && s.date.startsWith(activeDateStr))
         .reduce((sum, s) => sum + (Number(s.cashPaid) || 0), 0);
 
-      // Actual mal entered today (excluding pure cash drawer payments)
+      // Actual mal entered today
       const todayMalEntered = stockList
-        .filter(s => s.date && s.date.startsWith(activeDateStr) && !(s.cashPaid > 0 && s.amount === s.cashPaid && (!s.description || s.description.includes('ক্যাশ'))))
+        .filter(s => s.date && s.date.startsWith(activeDateStr))
         .reduce((sum, s) => sum + (Number(s.amount) || 0), 0);
 
       const lastDateStr = dData?.lastDay?.date ? dData.lastDay.date.split('T')[0] : '';
