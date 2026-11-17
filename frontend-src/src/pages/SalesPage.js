@@ -127,10 +127,10 @@ const SalesPage = () => {
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px', flexWrap: 'wrap', gap: '8px' }}>
         <div>
           <h2 style={{ fontSize: '20px', fontWeight: 700, margin: 0, color: 'var(--stone-900)' }}>
-            💰 বিক্রয়ের হিসাব
+            💰 পণ্য বিক্রয়ের হিসাব
           </h2>
           <p style={{ fontSize: '13px', color: 'var(--stone-500)', margin: '2px 0 0' }}>
-            দৈনিক বিক্রয় এন্ট্রি করুন। ১২% আয় সরাসরি অটোমেটিক গণনা হবে।
+            দৈনিক পণ্য বিক্রয় এন্ট্রি করুন। ১২% আয় সরাসরি অটোমেটিক গণনা হবে।
           </p>
         </div>
 
@@ -151,7 +151,7 @@ const SalesPage = () => {
             {years.map(y => <option key={y} value={y}>{y}</option>)}
           </select>
           <div style={{ background: 'var(--teal-light)', color: 'var(--primary)', border: '1px solid var(--teal-border)', padding: '5px 10px', borderRadius: '12px', fontSize: '13px', fontWeight: 700 }}>
-            বিক্রয়: {tk(totals.totalSales)}
+            পণ্য বিক্রয়: {tk(totals.totalSales)}
           </div>
           <div style={{ background: 'var(--emerald-light)', color: 'var(--emerald)', border: '1px solid var(--emerald-border)', padding: '5px 10px', borderRadius: '12px', fontSize: '13px', fontWeight: 700 }}>
             আয়: {tk(totals.totalIncome)}
@@ -164,14 +164,14 @@ const SalesPage = () => {
         {/* Left: Sticky Compact Form */}
         <div className="form-card split-sticky" style={{ margin: 0, padding: '20px' }}>
           <h3 style={{ fontSize: '16px', margin: '0 0 14px', paddingBottom: '10px' }}>
-            ➕ নতুন বিক্রয় যোগ করুন
+            ➕ নতুন পণ্য বিক্রয় যোগ করুন
           </h3>
           {msg && <div className="alert alert-success" style={{ padding: '8px 12px', fontSize: '13px' }}>{msg}</div>}
           {error && <div className="alert alert-error" style={{ padding: '8px 12px', fontSize: '13px' }}>⚠️ {error}</div>}
 
           <form onSubmit={handleSubmit}>
             <div className="form-group" style={{ marginBottom: '12px' }}>
-              <label style={{ fontSize: '12px' }}>বিক্রয় পরিমাণ (টাকা) *</label>
+              <label style={{ fontSize: '12px' }}>পণ্য বিক্রয় পরিমাণ (টাকা) *</label>
               <input
                 type="number"
                 placeholder="যেমন: 10000"
@@ -202,7 +202,7 @@ const SalesPage = () => {
               <label style={{ fontSize: '12px' }}>বিবরণ (ঐচ্ছিক)</label>
               <input
                 type="text"
-                placeholder="যেমন: মুদিমাল বিক্রয়"
+                placeholder="যেমন: মুদি পণ্য বিক্রয়"
                 value={form.description}
                 onChange={e => setForm({ ...form, description: e.target.value })}
                 style={{ padding: '10px 14px' }}
@@ -210,7 +210,7 @@ const SalesPage = () => {
             </div>
 
             <button type="submit" className="btn btn-primary" disabled={loading} style={{ padding: '11px' }}>
-              {loading ? 'সেভ হচ্ছে...' : '+ বিক্রয় সেভ করুন'}
+              {loading ? 'সেভ হচ্ছে...' : '+ পণ্য বিক্রয় সেভ করুন'}
             </button>
           </form>
         </div>
@@ -218,13 +218,13 @@ const SalesPage = () => {
         {/* Right: Scrollable Records Table */}
         <div className="compact-table-container">
           {sales.length === 0 ? (
-            <div className="empty-state" style={{ padding: '40px 20px' }}>📭 এই মাসে কোনো বিক্রয় রেকর্ড নেই।</div>
+            <div className="empty-state" style={{ padding: '40px 20px' }}>📭 এই মাসে কোনো পণ্য বিক্রয় রেকর্ড নেই।</div>
           ) : (
             <table className="data-table">
               <thead>
                 <tr>
                   <th>তারিখ</th>
-                  <th>বিক্রয়</th>
+                  <th>পণ্য বিক্রয়</th>
                   <th>আয় (১২%)</th>
                   <th>বিবরণ</th>
                   <th style={{ textAlign: 'center' }}>অ্যাকশন</th>

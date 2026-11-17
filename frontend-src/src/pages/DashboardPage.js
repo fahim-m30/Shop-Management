@@ -245,7 +245,7 @@ const DashboardPage = () => {
                     {activeTab === 'today' ? 'আজকের' : 'শেষ দিনের'} অবশিষ্ট ক্যাশ (Cash in Hand): {tk(currentCash)}
                   </div>
                   <div style={{ fontSize: '12px', color: '#047857', marginTop: '3px' }}>
-                    হিসাব: মোট বিক্রয় (<strong>{tk(currentSales)}</strong>) − ক্যাশ বাক্স থেকে মাল কেনা (<strong>{tk(activeTab === 'today' ? (data?.today?.totalCashStock || 0) : (data?.lastDay?.totalCashStock || 0))}</strong>)
+                    হিসাব: মোট পণ্য বিক্রয় (<strong>{tk(currentSales)}</strong>) − দোকানের ক্যাশ থেকে পণ্য কেনা (<strong>{tk(activeTab === 'today' ? (data?.today?.totalCashStock || 0) : (data?.lastDay?.totalCashStock || 0))}</strong>)
                   </div>
                 </div>
               </div>
@@ -260,11 +260,11 @@ const DashboardPage = () => {
             <div className="stat-card stat-blue" style={{ padding: '16px' }}>
               <div className="stat-icon" style={{ width: '44px', height: '44px', fontSize: '22px' }}>📦</div>
               <div className="stat-info">
-                <p style={{ margin: 0, fontSize: '12px' }}>মাল ঢুকেছে</p>
+                <p style={{ margin: 0, fontSize: '12px' }}>পণ্য ঢুকেছে</p>
                 <h3 style={{ fontSize: '20px', marginTop: '2px' }}>{tk(currentStock)}</h3>
                 {isDaily && (activeTab === 'today' ? (data?.today?.totalCashStock || 0) : (data?.lastDay?.totalCashStock || 0)) > 0 && (
                   <div style={{ fontSize: '11px', color: '#b45309', marginTop: '2px', fontWeight: 600 }}>
-                    💵 ক্যাশ থেকে দেওয়া: {tk(activeTab === 'today' ? data?.today?.totalCashStock : data?.lastDay?.totalCashStock)}
+                    🏪 দোকানের ক্যাশ থেকে: {tk(activeTab === 'today' ? data?.today?.totalCashStock : data?.lastDay?.totalCashStock)}
                   </div>
                 )}
               </div>
@@ -273,7 +273,7 @@ const DashboardPage = () => {
             <div className="stat-card stat-green" style={{ padding: '16px' }}>
               <div className="stat-icon" style={{ width: '44px', height: '44px', fontSize: '22px' }}>💰</div>
               <div className="stat-info">
-                <p style={{ margin: 0, fontSize: '12px' }}>মোট বিক্রয়</p>
+                <p style={{ margin: 0, fontSize: '12px' }}>মোট পণ্য বিক্রয়</p>
                 <h3 style={{ fontSize: '20px', marginTop: '2px' }}>{tk(currentSales)}</h3>
               </div>
             </div>
@@ -313,8 +313,8 @@ const DashboardPage = () => {
                 <thead>
                   <tr>
                     <th>সময়কাল</th>
-                    <th>📦 মাল ঢুকেছে</th>
-                    <th>💰 বিক্রয়</th>
+                    <th>📦 পণ্য ঢুকেছে</th>
+                    <th>💰 পণ্য বিক্রয়</th>
                     <th>📈 লাভ / আয় (১২%)</th>
                     <th>💵 হাতে ক্যাশ</th>
                   </tr>
@@ -393,8 +393,8 @@ const DashboardPage = () => {
               <thead>
                 <tr>
                   <th>মাস</th>
-                  <th>মাল ঢুকেছে</th>
-                  <th>বিক্রয়</th>
+                  <th>পণ্য ঢুকেছে</th>
+                  <th>পণ্য বিক্রয়</th>
                   <th>আয় (১২%)</th>
                 </tr>
               </thead>

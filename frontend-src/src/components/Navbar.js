@@ -32,13 +32,13 @@ const Navbar = ({ activePage, onNavigate }) => {
           className={`nav-link ${activePage === 'stock' ? 'active' : ''}`}
           onClick={() => onNavigate('stock')}
         >
-          📦 মাল ঢোকা
+          📦 পণ্য ঢোকা
         </button>
         <button
           className={`nav-link ${activePage === 'sales' ? 'active' : ''}`}
           onClick={() => onNavigate('sales')}
         >
-          💰 বিক্রয়
+          💰 পণ্য বিক্রয়
         </button>
       </div>
 

@@ -134,7 +134,7 @@ const StockPage = () => {
     setTotalAmount(prev => prev + finalAmount);
     setTotalCashPaid(prev => prev + finalCash);
     setTotalOwnPaid(prev => prev + finalOwn);
-    setMsg('✅ মাল ঢোকার তথ্য সেভ হয়েছে!');
+    setMsg('✅ পণ্য ঢোকার তথ্য সেভ হয়েছে!');
 
     const submittedData = {
       amount: finalAmount,
@@ -197,10 +197,10 @@ const StockPage = () => {
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px', flexWrap: 'wrap', gap: '8px' }}>
         <div>
           <h2 style={{ fontSize: '20px', fontWeight: 700, margin: 0, color: 'var(--stone-900)' }}>
-            📦 মাল ঢোকার হিসাব
+            📦 পণ্য ঢোকার হিসাব
           </h2>
           <p style={{ fontSize: '13px', color: 'var(--stone-500)', margin: '2px 0 0' }}>
-            দোকানে মাল কেনার হিসাব, ক্যাশ বাক্স থেকে দেওয়া এবং নিজের টাকার হিসাব।
+            দোকানে পণ্য কেনা: কত টাকা আগের জমানো/নিজের এবং কত টাকা দোকানের ক্যাশ বাক্স থেকে দেওয়া হয়েছে।
           </p>
         </div>
 
@@ -221,13 +221,13 @@ const StockPage = () => {
             {years.map(y => <option key={y} value={y}>{y}</option>)}
           </select>
           <div style={{ background: 'var(--primary-light)', color: 'var(--primary)', border: '1px solid var(--primary-border)', padding: '5px 12px', borderRadius: '12px', fontSize: '13px', fontWeight: 700 }}>
-            📦 মোট মাল: {tk(totalAmount)}
+            📦 মোট পণ্য: {tk(totalAmount)}
           </div>
           <div style={{ background: '#fef3c7', color: '#b45309', border: '1px solid #fde68a', padding: '5px 12px', borderRadius: '12px', fontSize: '13px', fontWeight: 700 }}>
-            💵 ক্যাশ থেকে: {tk(totalCashPaid)}
+            🏪 দোকানের ক্যাশ থেকে: {tk(totalCashPaid)}
           </div>
           <div style={{ background: '#eff6ff', color: '#1d4ed8', border: '1px solid #bfdbfe', padding: '5px 12px', borderRadius: '12px', fontSize: '13px', fontWeight: 700 }}>
-            👤 নিজের টাকা: {tk(totalOwnPaid)}
+            👤 আগের জমানো / নিজের টাকা: {tk(totalOwnPaid)}
           </div>
         </div>
       </div>
@@ -239,14 +239,14 @@ const StockPage = () => {
           className={`mobile-view-tab ${mobileTab === 'form' ? 'active' : ''}`}
           onClick={() => setMobileTab('form')}
         >
-          ➕ নতুন মাল এন্ট্রি
+          ➕ নতুন পণ্য এন্ট্রি
         </button>
         <button
           type="button"
           className={`mobile-view-tab ${mobileTab === 'history' ? 'active' : ''}`}
           onClick={() => setMobileTab('history')}
         >
-          📋 মালের হিস্টোরি ({stocks.length})
+          📋 পণ্যের হিস্টোরি ({stocks.length})
         </button>
       </div>
 
@@ -255,16 +255,16 @@ const StockPage = () => {
         {/* Left: Entry Form */}
         <div className={`form-card split-sticky ${mobileTab !== 'form' ? 'hide-on-mobile' : ''}`} style={{ margin: 0, padding: '20px' }}>
           <h3 style={{ fontSize: '16px', margin: '0 0 14px', paddingBottom: '10px' }}>
-            ➕ নতুন মাল এন্ট্রি
+            ➕ নতুন পণ্য এন্ট্রি
           </h3>
           {msg && <div className="alert alert-success" style={{ padding: '8px 12px', fontSize: '13px' }}>{msg}</div>}
           {error && <div className="alert alert-error" style={{ padding: '8px 12px', fontSize: '13px' }}>⚠️ {error}</div>}
           
           <form onSubmit={handleSubmit}>
-            {/* Input 1: মালের মোট টাকা */}
+            {/* Input 1: পণ্যের মোট টাকা */}
             <div className="form-group" style={{ marginBottom: '14px' }}>
               <label style={{ fontSize: '13px', fontWeight: 600 }}>
-                মালের মোট পরিমাণ (টাকা) <span style={{ color: 'var(--stone-400)', fontWeight: 400 }}>(ঐচ্ছিক)</span>
+                পণ্যের মোট পরিমাণ / বিল (টাকা) <span style={{ color: 'var(--stone-400)', fontWeight: 400 }}>(ঐচ্ছিক)</span>
               </label>
               <input
                 id="stock-amount-input"
@@ -277,11 +277,14 @@ const StockPage = () => {
               />
             </div>
 
-            {/* Input 2: ক্যাশ বাক্স থেকে দেওয়া টাকা */}
+            {/* Input 2: দোকানের ক্যাশ বাক্স থেকে দেওয়া টাকা */}
             <div className="form-group" style={{ marginBottom: '14px' }}>
-              <label style={{ fontSize: '13px', fontWeight: 600, display: 'block', marginBottom: '6px' }}>
-                ক্যাশ বাক্স থেকে দেওয়া টাকা <span style={{ fontSize: '11px', color: '#b45309', fontWeight: 600 }}>(ক্যাশ থেকে বিয়োগ হবে)</span>
+              <label style={{ fontSize: '13px', fontWeight: 600, display: 'block', marginBottom: '4px' }}>
+                🏪 দোকানের ক্যাশ বাক্স থেকে দেওয়া টাকা <span style={{ fontSize: '11px', color: '#b45309', fontWeight: 600 }}>(আজকের ক্যাশ থেকে বিয়োগ হবে)</span>
               </label>
+              <span style={{ fontSize: '11px', color: 'var(--stone-500)', display: 'block', marginBottom: '8px' }}>
+                💡 আজকের দোকানের বিক্রয়ের ক্যাশ থেকে দিলে এখানে লিখুন। আগের টাকা/নিজের টাকা থেকে দিলে নিচের বাটনে ক্লিক করুন।
+              </span>
 
               {/* Quick Click Option Buttons */}
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginBottom: '8px' }}>
@@ -315,7 +318,7 @@ const StockPage = () => {
                     gap: '4px'
                   }}
                 >
-                  <span>💵 সম্পূর্ণ ক্যাশ</span>
+                  <span>🏪 সম্পূর্ণ ক্যাশ থেকে</span>
                   {form.amount && Number(form.amount) > 0 ? (
                     <span style={{ fontSize: '11px', fontWeight: 700 }}>({tk(form.amount)})</span>
                   ) : ''}
@@ -345,7 +348,7 @@ const StockPage = () => {
                     gap: '4px'
                   }}
                 >
-                  <span>👤 নিজের টাকা (০৳ ক্যাশ)</span>
+                  <span>👤 আগের/নিজের টাকা (০৳ ক্যাশ)</span>
                 </button>
               </div>
 
@@ -360,18 +363,20 @@ const StockPage = () => {
 
               {/* Dynamic Live Breakdown Card */}
               {(numAmount > 0 || numCash > 0) && (
-                <div style={{ marginTop: '10px', padding: '10px 12px', background: '#f8fafc', borderRadius: '8px', border: '1px solid #e2e8f0', fontSize: '12px' }}>
-                  <div style={{ fontWeight: 700, color: 'var(--stone-700)', marginBottom: '4px' }}>📊 হিসাবের লাইভ সারসংক্ষেপ:</div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', padding: '2px 0' }}>
-                    <span style={{ color: 'var(--stone-600)' }}>📦 মালের মোট বিল:</span>
+                <div style={{ marginTop: '10px', padding: '12px', background: '#f8fafc', borderRadius: '10px', border: '1px solid #cbd5e1', fontSize: '12px' }}>
+                  <div style={{ fontWeight: 700, color: 'var(--stone-800)', marginBottom: '6px', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                    <span>⚖️</span> <strong>টাকার উৎসের হিসাব (কোন টাকা কোথা থেকে):</strong>
+                  </div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', padding: '3px 0', borderBottom: '1px dashed #e2e8f0' }}>
+                    <span style={{ color: 'var(--stone-600)' }}>📦 পণ্যের মোট দাম:</span>
                     <strong style={{ color: 'var(--stone-900)' }}>{tk(numAmount > 0 ? numAmount : numCash)}</strong>
                   </div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', padding: '2px 0' }}>
-                    <span style={{ color: '#b45309' }}>💵 ক্যাশ বাক্স থেকে কাটা হবে:</span>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', padding: '3px 0', borderBottom: '1px dashed #e2e8f0' }}>
+                    <span style={{ color: '#b45309' }}>🏪 দোকানের ক্যাশ বাক্স থেকে (আজকের ক্যাশ থেকে কাটা হবে):</span>
                     <strong style={{ color: '#b45309' }}>{tk(numCash)}</strong>
                   </div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', padding: '2px 0' }}>
-                    <span style={{ color: '#1d4ed8' }}>👤 নিজের/জমানো টাকা:</span>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', padding: '3px 0' }}>
+                    <span style={{ color: '#1d4ed8' }}>👤 আপনার আগের জমানো / নিজের টাকা থেকে পরিশোধ:</span>
                     <strong style={{ color: '#1d4ed8' }}>{tk(calculatedOwn)}</strong>
                   </div>
                 </div>
@@ -379,7 +384,7 @@ const StockPage = () => {
             </div>
 
             <div className="form-group" style={{ marginBottom: '12px' }}>
-              <label style={{ fontSize: '12px' }}>বিবরণ (কোম্পানি বা মালের নাম)</label>
+              <label style={{ fontSize: '12px' }}>বিবরণ (কোম্পানি বা পণ্যের নাম)</label>
               <input
                 type="text"
                 placeholder="যেমন: uni liver, pran, তেল, ডাল"
@@ -400,7 +405,7 @@ const StockPage = () => {
             </div>
 
             <button type="submit" className="btn btn-primary" disabled={loading} style={{ padding: '11px', width: '100%' }}>
-              {loading ? 'সেভ হচ্ছে...' : '+ এন্ট্রি সেভ করুন'}
+              {loading ? 'সেভ হচ্ছে...' : '+ পণ্য এন্ট্রি সেভ করুন'}
             </button>
           </form>
         </div>
@@ -421,7 +426,7 @@ const StockPage = () => {
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '8px' }}>
                         <div>
                           <div style={{ fontWeight: 700, fontSize: '15px', color: 'var(--stone-900)' }}>
-                            {s.displayDescription || 'মাল ঢোকা'}
+                            {s.displayDescription || 'পণ্য ঢোকা'}
                           </div>
                           <div style={{ fontSize: '12px', color: 'var(--stone-500)', marginTop: '2px' }}>
                             📅 {new Date(s.date).toLocaleDateString('bn-BD', { day: 'numeric', month: 'long', year: 'numeric' })}
@@ -434,17 +439,17 @@ const StockPage = () => {
 
                       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '6px', background: 'var(--stone-50)', padding: '10px', borderRadius: '8px', textAlign: 'center' }}>
                         <div>
-                          <div style={{ fontSize: '11px', color: 'var(--stone-500)', fontWeight: 600 }}>মোট বিল</div>
+                          <div style={{ fontSize: '11px', color: 'var(--stone-500)', fontWeight: 600 }}>পণ্যের মোট দাম</div>
                           <div style={{ fontSize: '13px', fontWeight: 800, color: 'var(--stone-900)', marginTop: '2px' }}>{tk(s.amount)}</div>
                         </div>
                         <div>
-                          <div style={{ fontSize: '11px', color: '#b45309', fontWeight: 600 }}>💵 ক্যাশ থেকে</div>
+                          <div style={{ fontSize: '11px', color: '#b45309', fontWeight: 600 }}>🏪 দোকানের ক্যাশ</div>
                           <div style={{ fontSize: '13px', fontWeight: 700, color: cash > 0 ? '#b45309' : 'var(--stone-400)', marginTop: '2px' }}>
                             {cash > 0 ? tk(cash) : '—'}
                           </div>
                         </div>
                         <div>
-                          <div style={{ fontSize: '11px', color: '#1d4ed8', fontWeight: 600 }}>👤 নিজের টাকা</div>
+                          <div style={{ fontSize: '11px', color: '#1d4ed8', fontWeight: 600 }}>👤 আগের/নিজের টাকা</div>
                           <div style={{ fontSize: '13px', fontWeight: 700, color: own > 0 ? '#1d4ed8' : 'var(--stone-400)', marginTop: '2px' }}>
                             {own > 0 ? tk(own) : '—'}
                           </div>
@@ -461,10 +466,10 @@ const StockPage = () => {
                   <thead>
                     <tr>
                       <th>তারিখ</th>
-                      <th>বিবরণ</th>
-                      <th>মালের মোট টাকা</th>
-                      <th>ক্যাশ থেকে দেওয়া</th>
-                      <th>নিজের টাকা</th>
+                      <th>পণ্যের নাম / বিবরণ</th>
+                      <th>পণ্যের মোট দাম</th>
+                      <th>🏪 দোকানের ক্যাশ থেকে</th>
+                      <th>👤 আগের জমানো / নিজের টাকা</th>
                       <th style={{ textAlign: 'center' }}>অ্যাকশন</th>
                     </tr>
                   </thead>
@@ -484,7 +489,7 @@ const StockPage = () => {
                           <td>
                             {cash > 0 ? (
                               <span style={{ color: '#b45309', fontWeight: 700 }}>
-                                💵 {tk(cash)}
+                                🏪 {tk(cash)}
                               </span>
                             ) : (
                               <span style={{ color: 'var(--stone-400)', fontSize: '12px' }}>
